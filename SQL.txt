@@ -2,100 +2,136 @@
 CREATE DATABASE IF NOT EXISTS calouself;
 
 
-
-
--- Create Users table
+-- Create Users Table
 CREATE TABLE users (
     User_id VARCHAR(15) PRIMARY KEY,
     Username VARCHAR(50),
     Password VARCHAR(50),
     Phone_number VARCHAR(20),
     Address TEXT,
-    Role VARCHAR(20)
+    Role ENUM('seller', 'customer')
 );
 
--- Create Items table
+-- Create Items Table
 CREATE TABLE items (
     Item_id VARCHAR(15) PRIMARY KEY,
     Item_name VARCHAR(100),
     Item_size VARCHAR(50),
     Item_price DECIMAL(10, 2),
     Item_category VARCHAR(50),
-    Item_status VARCHAR(20),
-    Item_offer_price DECIMAL(10, 2),
-    Item_offer_status VARCHAR(20)
+    Item_status ENUM('Declined', 'Pending', 'Approved'),
+    Reason TEXT NULL
 );
 
--- Create Transactions table
+-- Create Transactions Table
 CREATE TABLE transactions (
     Transaction_id VARCHAR(15) PRIMARY KEY,
     User_id VARCHAR(15),
     Item_id VARCHAR(15),
-    FOREIGN KEY (User_id) REFERENCES users(User_id),
+    FOREIGN KEY (User_id) REFERENCES users(User_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
     FOREIGN KEY (Item_id) REFERENCES items(Item_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
 );
 
--- Create Wishlists table
+-- Create Wishlists Table
 CREATE TABLE wishlists (
     Wishlist_id VARCHAR(15) PRIMARY KEY,
     Item_id VARCHAR(15),
     User_id VARCHAR(15),
-    FOREIGN KEY (Item_id) REFERENCES items(Item_id),
+    FOREIGN KEY (Item_id) REFERENCES items(Item_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
     FOREIGN KEY (User_id) REFERENCES users(User_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
 );
 
--- Insert sample data into Users table
+-- Create Seller_Items Table
+CREATE TABLE seller_items (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    Item_id VARCHAR(15),
+    Seller_id VARCHAR(15),
+    FOREIGN KEY (Item_id) REFERENCES items(Item_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    FOREIGN KEY (Seller_id) REFERENCES users(User_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
+
+-- Create Offers Table
+CREATE TABLE offers (
+    Offer_id VARCHAR(15) PRIMARY KEY,
+    Product_id INT,
+    Buyer_id VARCHAR(15),
+    Item_offer_price DECIMAL(10, 2),
+    Item_offer_status ENUM('Accepted', 'Declined', 'Offered'),
+    Reason TEXT NULL,
+    FOREIGN KEY (Product_id) REFERENCES seller_items(id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    FOREIGN KEY (Buyer_id) REFERENCES users(User_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
+
 INSERT INTO users (User_id, Username, Password, Phone_number, Address, Role)
 VALUES
-    ('US0000000001', 'john_doe', 'password123', '1234567890', '123 Elm Street', 'customer'),
-    ('US0000000002', 'jane_smith', 'mypassword456', '2345678901', '456 Oak Avenue', 'seller'),
-    ('US0000000003', 'alice_jones', 'alice789', '3456789012', '789 Pine Road', 'customer'),
-    ('US0000000004', 'bob_brown', 'bobsecure123', '4567890123', '101 Maple Drive', 'customer'),
-    ('US0000000005', 'charlie_davis', 'charlie1234', '5678901234', '202 Birch Blvd', 'seller'),
-    ('US0000000006', 'diana_white', 'diana987', '6789012345', '303 Cedar Lane', 'customer'),
-    ('US0000000007', 'emily_taylor', 'emily5678', '7890123456', '404 Walnut Street', 'customer'),
-    ('US0000000008', 'frank_harris', 'frank12345', '8901234567', '505 Cherry Circle', 'seller'),
-    ('US0000000009', 'grace_martin', 'grace8765', '9012345678', '606 Pinecrest Avenue', 'customer'),
-    ('US0000000010', 'henry_lee', 'henry2468', '0123456789', '707 Elmhurst Lane', 'seller');
+    ('US0000000001', 'john_doe', 'pass123', '1234567890', '123 Elm St', 'customer'),
+    ('US0000000002', 'jane_seller', 'sellerpass', '0987654321', '456 Oak Rd', 'seller'),
+    ('US0000000003', 'alice_buyer', 'buyer123', '2345678901', '789 Pine Ln', 'customer'),
+    ('US0000000004', 'bob_seller', 'bobpass', '3456789012', '101 Maple Ave', 'seller'),
+    ('US0000000005', 'charlie', 'charliepass', '4567890123', '202 Birch Blvd', 'customer'),
+    ('US0000000006', 'dave_buyer', 'buyerpass', '5678901234', '303 Cherry St', 'customer'),
+    ('US0000000007', 'eve_seller', 'sellerpass', '6789012345', '404 Walnut Ave', 'seller'),
+    ('US0000000008', 'frank', 'pass123', '7890123456', '505 Cypress Ct', 'customer'),
+    ('US0000000009', 'grace', 'pass456', '8901234567', '606 Poplar St', 'customer'),
+    ('US0000000010', 'hannah', 'seller123', '9012345678', '707 Maple Dr', 'seller');
 
--- Insert sample data into Items table
-INSERT INTO items (Item_id, Item_name, Item_size, Item_price, Item_category, Item_status, Item_offer_price, Item_offer_status)
+INSERT INTO items (Item_id, Item_name, Item_size, Item_price, Item_category, Item_status, Reason)
 VALUES
-    ('IT0000000001', 'Laptop', '15 inch', 1200.00, 'Electronics', 'Approved', 1100.00, 'Offered'),
-    ('IT0000000002', 'Smartphone', '6 inch', 800.00, 'Electronics', 'Pending', 750.00, 'Offered'),
-    ('IT0000000003', 'Headphones', 'Over-ear', 150.00, 'Accessories', 'Approved', 120.00, 'Accepted'),
-    ('IT0000000004', 'Table Lamp', 'Medium', 40.00, 'Furniture', 'Declined', 35.00, 'Declined'),
-    ('IT0000000005', 'Coffee Maker', '1.5L', 100.00, 'Appliances', 'Pending', 90.00, 'Offered'),
-    ('IT0000000006', 'Sofa', 'Large', 500.00, 'Furniture', 'Approved', 450.00, 'Offered'),
-    ('IT0000000007', 'Bookshelf', 'Tall', 150.00, 'Furniture', 'Pending', 140.00, 'Offered'),
-    ('IT0000000008', 'Microwave', '1.2L', 150.00, 'Appliances', 'Declined', 130.00, 'Declined'),
-    ('IT0000000009', 'Smartwatch', 'Medium', 250.00, 'Accessories', 'Approved', 230.00, 'Accepted'),
-    ('IT0000000010', 'Refrigerator', '300L', 600.00, 'Appliances', 'Approved', 550.00, 'Offered');
+    ('IT0000000001', 'Laptop', '15 inch', 1200.00, 'Electronics', 'Approved', NULL),
+    ('IT0000000002', 'Smartphone', '6 inch', 800.00, 'Electronics', 'Pending', NULL),
+    ('IT0000000003', 'Headphones', 'Medium', 200.00, 'Accessories', 'Declined', 'Not a popular item'),
+    ('IT0000000004', 'Gaming Mouse', 'Small', 50.00, 'Accessories', 'Approved', NULL),
+    ('IT0000000005', 'Tablet', '10 inch', 600.00, 'Electronics', 'Pending', NULL),
+    ('IT0000000006', 'Keyboard', 'Standard', 40.00, 'Accessories', 'Approved', NULL),
+    ('IT0000000007', 'Monitor', '24 inch', 250.00, 'Electronics', 'Declined', 'Price too high'),
+    ('IT0000000008', 'Desk Chair', 'Large', 150.00, 'Furniture', 'Approved', NULL),
+    ('IT0000000009', 'Bookshelf', 'Medium', 100.00, 'Furniture', 'Pending', NULL),
+    ('IT0000000010', 'Wireless Earbuds', 'Small', 120.00, 'Accessories', 'Declined', 'Insufficient stock');
 
--- Insert sample data into Transactions table
 INSERT INTO transactions (Transaction_id, User_id, Item_id)
 VALUES
     ('TR0000000001', 'US0000000001', 'IT0000000001'),
-    ('TR0000000002', 'US0000000002', 'IT0000000003'),
-    ('TR0000000003', 'US0000000003', 'IT0000000005'),
-    ('TR0000000004', 'US0000000004', 'IT0000000002'),
-    ('TR0000000005', 'US0000000005', 'IT0000000004'),
-    ('TR0000000006', 'US0000000006', 'IT0000000009'),
-    ('TR0000000007', 'US0000000007', 'IT0000000010'),
-    ('TR0000000008', 'US0000000008', 'IT0000000006'),
-    ('TR0000000009', 'US0000000009', 'IT0000000007'),
-    ('TR0000000010', 'US0000000010', 'IT0000000008');
+    ('TR0000000002', 'US0000000003', 'IT0000000002'),
+    ('TR0000000003', 'US0000000005', 'IT0000000004'),
+    ('TR0000000004', 'US0000000006', 'IT0000000006'),
+    ('TR0000000005', 'US0000000008', 'IT0000000008');
 
--- Insert sample data into Wishlists table
 INSERT INTO wishlists (Wishlist_id, Item_id, User_id)
 VALUES
-    ('WS0000000001', 'IT0000000002', 'US0000000001'),
-    ('WS0000000002', 'IT0000000004', 'US0000000002'),
-    ('WS0000000003', 'IT0000000006', 'US0000000003'),
-    ('WS0000000004', 'IT0000000008', 'US0000000004'),
-    ('WS0000000005', 'IT0000000007', 'US0000000005'),
-    ('WS0000000006', 'IT0000000009', 'US0000000006'),
-    ('WS0000000007', 'IT0000000010', 'US0000000007'),
-    ('WS0000000008', 'IT0000000001', 'US0000000008'),
-    ('WS0000000009', 'IT0000000003', 'US0000000009'),
-    ('WS0000000010', 'IT0000000005', 'US0000000010');
+    ('WS0000000001', 'IT0000000002', 'US0000000003'),
+    ('WS0000000002', 'IT0000000001', 'US0000000001'),
+    ('WS0000000003', 'IT0000000004', 'US0000000005'),
+    ('WS0000000004', 'IT0000000006', 'US0000000006'),
+    ('WS0000000005', 'IT0000000008', 'US0000000008');
+
+INSERT INTO seller_items (Item_id, Seller_id)
+VALUES
+    ('IT0000000001', 'US0000000002'),
+    ('IT0000000002', 'US0000000004'),
+    ('IT0000000004', 'US0000000007'),
+    ('IT0000000006', 'US0000000010'),
+    ('IT0000000008', 'US0000000007');
+
+INSERT INTO offers (Offer_id, Product_id, Buyer_id, Item_offer_price, Item_offer_status, Reason)
+VALUES
+    ('OF0000000001', 1, 'US0000000003', 1100.00, 'Accepted', NULL),
+    ('OF0000000002', 2, 'US0000000001', 750.00, 'Offered', NULL),
+    ('OF0000000003', 3, 'US0000000005', 180.00, 'Declined', 'Price too low'),
+    ('OF0000000004', 4, 'US0000000008', 45.00, 'Offered', NULL),
+    ('OF0000000005', 5, 'US0000000009', 125.00, 'Declined', 'Item out of stock');

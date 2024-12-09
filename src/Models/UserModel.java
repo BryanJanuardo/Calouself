@@ -4,6 +4,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import Helper.IdGeneratorHelper;
 import Utils.ConnectionDB;
 import Utils.Response;
 
@@ -82,10 +83,7 @@ public class UserModel {
 	    	if(user == null) {
 	    		newUserId = "US0000000001";
 	    	}else {
-	    		String unprocessedId = user.getUser_id();
-	    		String slicedId = unprocessedId.substring(2);
-	    		int id = Integer.parseInt(slicedId);
-	    		newUserId = String.format("US%010d", (id + 1)); 
+	    		newUserId = IdGeneratorHelper.generateNewId(user.getUser_id(), "US");
 	    	}
 	    			
 	        ConnectionDB con = ConnectionDB.getInstance();
