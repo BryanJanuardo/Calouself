@@ -3,13 +3,14 @@ package Models;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 import Helper.IdGeneratorHelper;
 import Utils.ConnectionDB;
 import Utils.Response;
 
-public class UserModel {
-
+public class UserModel extends Model{
+	private String Tablename = "users";
 	private String User_id;
 	private String Username;
 	private String Password;
@@ -194,14 +195,6 @@ public class UserModel {
 		User_id = user_id;
 	}
 
-	public String getUserName() {
-		return Username;
-	}
-
-	public void setUserName(String userName) {
-		Username = userName;
-	}
-
 	public String getPassword() {
 		return Password;
 	}
@@ -234,4 +227,39 @@ public class UserModel {
 		Role = role;
 	}
 
+	public String getUsername() {
+		return Username;
+	}
+
+	public void setUsername(String username) {
+		Username = username;
+	}
+
+	public String getPhone_number() {
+		return Phone_number;
+	}
+
+	public void setPhone_number(String phone_number) {
+		Phone_number = phone_number;
+	}
+	
+	public String getTablename() {
+		return Tablename;
+	}
+	
+	public ArrayList<SellerItemModel> sellerItems(){
+		return this.hasMany(SellerItemModel.class, "seller_items", this.User_id, "Seller_id");
+	}
+	
+	public ArrayList<WishlistModel> wishlists(){
+		return this.hasMany(WishlistModel.class, "wishlists", this.User_id, "User_id");
+	}
+	
+	public ArrayList<UserModel> all(){
+		return super.all(UserModel.class);
+	}
+	
+	public ArrayList<UserModel> where(String columnName, String operator, String key){
+		return super.where(UserModel.class, columnName, operator, key);
+	}
 }

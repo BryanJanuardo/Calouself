@@ -1,21 +1,28 @@
 package Models;
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
+import Factory.SellerItemFactory;
+import Utils.ConnectionDB;
 import Utils.Response;
 
-public class ItemModel{
+public class ItemModel extends Model{
+	private String Tablename = "items";
 	private String Item_id;
 	private String Item_name;
 	private String Item_size;
 	private String Item_price;
 	private String Item_category;
 	private String Item_status;
-	private String Item_wishlist;
-	private String item_offer_status;
+	private String Reason;
 	
 	public static Response<ItemModel> UploadItem(String Item_name, String Item_category, String Item_size, String Item_price) {
+		Response<ItemModel> res = new Response<ItemModel>();
 		
+		String query = "INSERT INTO items (Item_id, Item_name, Item_size, Item_price, Item_category, Item_status)";
 		return null;
 	}
 	
@@ -29,24 +36,207 @@ public class ItemModel{
 		return null;
 	}
 	
-	public static Response<ArrayList<ItemModel>> BrowseItem(String Item_name){
+	
+	//MAISH SALAH
+	public static Response<ArrayList<SellerItemModel>> BrowseItem(String Item_name){
+		Response<ArrayList<SellerItemModel>> res = new Response<ArrayList<SellerItemModel>>();
 		
-		return null;
+		String query = "SELECT * FROM seller_items WHERE";
+		ArrayList<SellerItemModel> listSellerItems = new ArrayList<SellerItemModel>();
+		
+		try {
+			ConnectionDB con = ConnectionDB.getInstance();
+			PreparedStatement ps = con.prepareStatement(query);
+			
+			ps.setString(1, Item_name);
+			
+			ResultSet rs = con.execQuery(ps);
+			
+			if (!rs.next()) {
+	            res.setMessages("Error: Items Not Found!");
+	            res.setIsSuccess(false);
+	            res.setData(null);
+	            return res;
+	        }
+			
+			while(rs.next()) {
+				Integer id = rs.getInt("id");
+				String itemId = rs.getString("Item_id");
+				String sellerId = rs.getString("Seller_id");
+				SellerItemModel sellerItem = new SellerItemModel(id, itemId, sellerId);
+				
+				listSellerItems.add(sellerItem);
+			}
+			
+			res.setMessages("Success: Return All Browse Items!");
+	        res.setIsSuccess(true);
+	        res.setData(listSellerItems);
+	        return res;
+		} catch (SQLException e) {
+	        e.printStackTrace();
+	        res.setMessages("Error: " + e.getMessage() + "!");
+	        res.setIsSuccess(false);
+	        res.setData(null);
+	        return res;
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        res.setMessages("Error: " + e.getMessage() + "!");
+	        res.setIsSuccess(false);
+	        res.setData(null);
+	        return res;
+	    }
 	}
 	
-	public static Response<ArrayList<ItemModel>> ViewItem(){
+	public static Response<ArrayList<SellerItemModel>> ViewItem(){
+		Response<ArrayList<SellerItemModel>> res = new Response<ArrayList<SellerItemModel>>();
 		
-		return null;
+		String query = "SELECT * FROM seller_items";
+		ArrayList<SellerItemModel> listSellerItems = new ArrayList<SellerItemModel>();
+		
+		try {
+			ConnectionDB con = ConnectionDB.getInstance();
+			PreparedStatement ps = con.prepareStatement(query);
+			
+			ResultSet rs = con.execQuery(ps);
+			
+			if (!rs.next()) {
+	            res.setMessages("Error: Items Not Found!");
+	            res.setIsSuccess(false);
+	            res.setData(null);
+	            return res;
+	        }
+			
+			while(rs.next()) {
+				Integer id = rs.getInt("id");
+				String itemId = rs.getString("Item_id");
+				String sellerId = rs.getString("Seller_id");
+				SellerItemModel sellerItem = new SellerItemModel(id, itemId, sellerId);
+				
+				listSellerItems.add(sellerItem);
+			}
+			
+			res.setMessages("Success: User Authenticated!");
+	        res.setIsSuccess(true);
+	        res.setData(listSellerItems);
+	        return res;
+		} catch (SQLException e) {
+	        e.printStackTrace();
+	        res.setMessages("Error: " + e.getMessage() + "!");
+	        res.setIsSuccess(false);
+	        res.setData(null);
+	        return res;
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        res.setMessages("Error: " + e.getMessage() + "!");
+	        res.setIsSuccess(false);
+	        res.setData(null);
+	        return res;
+	    }
 	}
 	
 	public static Response<ItemModel> CheckItemValidation(String Item_name, String Item_category, String Item_size, String Item_price) {
+		Response<ArrayList<SellerItemModel>> res = new Response<ArrayList<SellerItemModel>>();
 		
+		String query = "SELECT * FROM seller_items";
+		ArrayList<SellerItemModel> listSellerItems = new ArrayList<SellerItemModel>();
+		
+		try {
+			ConnectionDB con = ConnectionDB.getInstance();
+			PreparedStatement ps = con.prepareStatement(query);
+			
+			ResultSet rs = con.execQuery(ps);
+			
+			if (!rs.next()) {
+	            res.setMessages("Error: Items Not Found!");
+	            res.setIsSuccess(false);
+	            res.setData(null);
+//	            return res;
+	        }
+			
+			while(rs.next()) {
+				Integer id = rs.getInt("id");
+				String itemId = rs.getString("Item_id");
+				String sellerId = rs.getString("Seller_id");
+				SellerItemModel sellerItem = new SellerItemModel(id, itemId, sellerId);
+				
+				listSellerItems.add(sellerItem);
+			}
+			
+			res.setMessages("Success: User Authenticated!");
+	        res.setIsSuccess(true);
+	        res.setData(listSellerItems);
+//	        return res;
+		} catch (SQLException e) {
+	        e.printStackTrace();
+	        res.setMessages("Error: " + e.getMessage() + "!");
+	        res.setIsSuccess(false);
+	        res.setData(null);
+//	        return res;
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        res.setMessages("Error: " + e.getMessage() + "!");
+	        res.setIsSuccess(false);
+	        res.setData(null);
+//	        return res;
+	    }
 		return null;
 	}
 	
-	public static Response<ArrayList<ItemModel>> ViewRequestItem(String Item_id, String Item_status){
+	public static Response<ArrayList<SellerItemModel>> ViewRequestItem(String Item_id, String Item_status){
+		Response<ArrayList<SellerItemModel>> res = new Response<ArrayList<SellerItemModel>>();
 		
-		return null;
+		String query = "SELECT * FROM seller_items";
+		ArrayList<SellerItemModel> listSellerItems = new ArrayList<SellerItemModel>();
+		
+		try {
+			ConnectionDB con = ConnectionDB.getInstance();
+			PreparedStatement ps = con.prepareStatement(query);
+			ResultSet rs = con.execQuery(ps);
+			
+			if (!rs.next()) {
+	            res.setMessages("Error: Items Not Found!");
+	            res.setIsSuccess(false);
+	            res.setData(null);
+	            return res;
+	        }
+			
+			while(rs.next()) {
+				Integer id = rs.getInt("id");
+				String itemId = rs.getString("Item_id");
+				String sellerId = rs.getString("Seller_id");
+				SellerItemModel sellerItem = new SellerItemModel(id, itemId, sellerId);
+				
+				listSellerItems.add(sellerItem);
+			}
+			
+			ArrayList<ItemModel> itemsList = new ArrayList<ItemModel>();
+			ArrayList<SellerItemModel> resultSellerItems = new ArrayList<SellerItemModel>();
+			for (SellerItemModel sellerItem : listSellerItems) {
+				ItemModel item = sellerItem.item();
+				if(item.getItem_status().equals("Pending")) {
+//					resultSellerItems.add();
+				}
+			}
+			
+			
+			
+			res.setMessages("Success: User Authenticated!");
+	        res.setIsSuccess(true);
+	        res.setData(listSellerItems);
+	        return res;
+		} catch (SQLException e) {
+	        e.printStackTrace();
+	        res.setMessages("Error: " + e.getMessage() + "!");
+	        res.setIsSuccess(false);
+	        res.setData(null);
+	        return res;
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        res.setMessages("Error: " + e.getMessage() + "!");
+	        res.setIsSuccess(false);
+	        res.setData(null);
+	        return res;
+	    }
 	}
 	
 	public static Response<ItemModel> OfferPrice(String Item_id, String Item_price) {
@@ -87,9 +277,9 @@ public class ItemModel{
 	public ItemModel() {
 		// TODO Auto-generated constructor stub
 	}
-	
+
 	public ItemModel(String item_id, String item_name, String item_size, String item_price, String item_category,
-			String item_status, String item_wishlist, String item_offer_status) {
+			String item_status, String reason) {
 		super();
 		Item_id = item_id;
 		Item_name = item_name;
@@ -97,8 +287,7 @@ public class ItemModel{
 		Item_price = item_price;
 		Item_category = item_category;
 		Item_status = item_status;
-		Item_wishlist = item_wishlist;
-		this.item_offer_status = item_offer_status;
+		Reason = reason;
 	}
 
 	public String getItem_id() {
@@ -149,20 +338,27 @@ public class ItemModel{
 		Item_status = item_status;
 	}
 
-	public String getItem_wishlist() {
-		return Item_wishlist;
+	public String getReason() {
+		return Reason;
 	}
 
-	public void setItem_wishlist(String item_wishlist) {
-		Item_wishlist = item_wishlist;
+	public void setReason(String reason) {
+		Reason = reason;
+	}
+	
+	public String getTablename() {
+		return Tablename;
 	}
 
-	public String getItem_offer_status() {
-		return item_offer_status;
+	public ArrayList<SellerItemModel> sellerItem() {
+		return this.hasMany(SellerItemModel.class, "seller_items", this.getItem_id(), "Item_id");
 	}
-
-	public void setItem_offer_status(String item_offer_status) {
-		this.item_offer_status = item_offer_status;
+	
+	public ArrayList<ItemModel> all(){
+		return super.all(ItemModel.class);
 	}
-
+	
+	public ArrayList<ItemModel> where(String columnName, String operator, String key){
+		return super.where(ItemModel.class, columnName, operator, key);
+	}
 }

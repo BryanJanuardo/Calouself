@@ -4,7 +4,8 @@ import java.util.ArrayList;
 
 import Utils.Response;
 
-public class WishlistModel {
+public class WishlistModel extends Model{
+	private String Tablename = "wishlists";
 	private String Wishlist_id;
 	private String Item_id;
 	private String User_id;
@@ -57,6 +58,26 @@ public class WishlistModel {
 
 	public void setUser_id(String user_id) {
 		User_id = user_id;
+	}
+
+	public String getTablename() {
+		return Tablename;
+	}
+	
+	public UserModel user() {
+		return this.hasOne(UserModel.class, "users", this.User_id, "User_id");
+	}
+	
+	public ItemModel item() {
+		return this.hasOne(ItemModel.class, "items", this.Item_id, "Item_id");
+	}
+	
+	public ArrayList<WishlistModel> all(){
+		return super.all(WishlistModel.class);
+	}
+	
+	public ArrayList<WishlistModel> where(String columnName, String operator, String key){
+		return super.where(WishlistModel.class, columnName, operator, key);
 	}
 
 }

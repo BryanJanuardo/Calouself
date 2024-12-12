@@ -4,7 +4,8 @@ import java.util.ArrayList;
 
 import Utils.Response;
 
-public class TransactionModel {
+public class TransactionModel extends Model{
+	private String Tablename = "transactions";
 	private String User_id;
 	private String Item_id;
 	private String Transaction_id;	
@@ -57,6 +58,18 @@ public class TransactionModel {
 
 	public void setTransaction_id(String transaction_id) {
 		Transaction_id = transaction_id;
+	}
+
+	public String getTablename() {
+		return Tablename;
+	}
+	
+	public ArrayList<TransactionModel> all(){
+		return super.all(TransactionModel.class);
+	}
+	
+	public ArrayList<TransactionModel> where(String columnName, String operator, String key){
+		return super.where(TransactionModel.class, columnName, operator, key);
 	}
 
 }

@@ -59,8 +59,8 @@ public class ConnectionDB {
 	
 	private ConnectionDB() {
 		try {
-			Class.forName("com.mysql.jdbc.Driver"); // versi 1 (Bluejack)
-//			Class.forName("com.mysql.cj.jdbc.Driver"); // versi 2 (PC Binus)
+//			Class.forName("com.mysql.jdbc.Driver"); // versi 1 (Bluejack)
+			Class.forName("com.mysql.cj.jdbc.Driver"); // versi 2 (PC Binus)
 			con = DriverManager.getConnection(CONNECTION, USERNAME, PASSWORD);
 		} catch (Exception e) {
 			e.printStackTrace();
