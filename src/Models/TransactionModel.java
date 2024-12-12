@@ -13,7 +13,7 @@ public class TransactionModel extends Model{
 	private String Transaction_id;	
 	
 	public static Response<TransactionModel> PurchaseItem(String User_id, String Item_id) {
-
+		
 		return null;
 	}
 	
