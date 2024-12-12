@@ -9,7 +9,7 @@ public class TransactionModel extends Model{
 	private final String Primarykey = "Transaction_id";
 	
 	private String User_id;
-	private String Item_id;
+	private String Product_id;
 	private String Transaction_id;	
 	
 	public static Response<TransactionModel> PurchaseItem(String User_id, String Item_id) {
@@ -31,10 +31,10 @@ public class TransactionModel extends Model{
 		// TODO Auto-generated constructor stub
 	}
 
-	public TransactionModel(String user_id, String item_id, String transaction_id) {
+	public TransactionModel(String user_id, String product_id, String transaction_id) {
 		super();
 		User_id = user_id;
-		Item_id = item_id;
+		Product_id = product_id;
 		Transaction_id = transaction_id;
 	}
 
@@ -46,12 +46,12 @@ public class TransactionModel extends Model{
 		User_id = user_id;
 	}
 
-	public String getItem_id() {
-		return Item_id;
+	public String getProduct_id() {
+		return Product_id;
 	}
 
-	public void setItem_id(String item_id) {
-		Item_id = item_id;
+	public void setProduct_id(String product_id) {
+		Product_id = product_id;
 	}
 
 	public String getTransaction_id() {
@@ -70,6 +70,14 @@ public class TransactionModel extends Model{
 		return this.Primarykey;
 	}
 
+	public ProductModel product() {
+		return this.hasOne(ProductModel.class, "products", this.getProduct_id(), "Product_id");
+	}
+	
+	public UserModel user() {
+		return this.hasOne(UserModel.class, "users", this.getUser_id(), "User_id");
+	}
+	
 	public ArrayList<TransactionModel> all(){
 		return super.all(TransactionModel.class);
 	}

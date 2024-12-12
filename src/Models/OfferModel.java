@@ -85,12 +85,12 @@ public class OfferModel extends Model{
 		return Primarykey;
 	}
 
-	public ArrayList<ProductModel> products() {
-		return this.hasMany(ProductModel.class, "products", this.getProduct_id(), "Item_id");
+	public ProductModel product() {
+		return this.hasOne(ProductModel.class, "products", this.getProduct_id(), "Product_id");
 	}
 	
-	public ArrayList<UserModel> users(){
-		return this.hasMany(UserModel.class, "users", this.getBuyer_id(), "User_id");
+	public UserModel user(){
+		return this.hasOne(UserModel.class, "users", this.getBuyer_id(), "User_id");
 	}
 	
 	public ArrayList<OfferModel> all(){

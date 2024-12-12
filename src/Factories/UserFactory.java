@@ -1,4 +1,4 @@
-package Factory;
+package Factories;
 
 import Models.UserModel;
 

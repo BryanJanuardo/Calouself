@@ -2,8 +2,8 @@ package Models;
 
 import java.util.ArrayList;
 
-import Factory.ItemFactory;
-import Factory.UserFactory;
+import Factories.ItemFactory;
+import Factories.UserFactory;
 
 public class ProductModel extends Model{
 	private final String Tablename = "products";
@@ -64,8 +64,16 @@ public class ProductModel extends Model{
 		return this.hasOne(ItemModel.class, "items", this.Item_id, "Item_id");
 	}
 
-	public ArrayList<WishlistModel> wishlist() {
-		return this.hasMany(WishlistModel.class, "wishlists", this.Item_id, "Item_id");
+	public ArrayList<WishlistModel> wishlists() {
+		return this.hasMany(WishlistModel.class, "wishlists", this.Product_id, "Product_id");
+	}
+
+	public ArrayList<OfferModel> offers() {
+		return this.hasMany(OfferModel.class, "offers", this.Product_id, "Product_id");
+	}
+	
+	public ArrayList<TransactionModel> transactions(){
+		return this.hasMany(TransactionModel.class, "transactions", this.Product_id, "Product_id");
 	}
 	
 	public ArrayList<ProductModel> all(){

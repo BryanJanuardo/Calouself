@@ -9,7 +9,7 @@ public class WishlistModel extends Model{
 	private final String Primarykey = "Wishlist_id";
 	
 	private String Wishlist_id;
-	private String Item_id;
+	private String Product_id;
 	private String User_id;
 
 	public static Response<ArrayList<WishlistModel>> ViewWishlist(String Wishlist_id, String User_id){
@@ -31,10 +31,10 @@ public class WishlistModel extends Model{
 		// TODO Auto-generated constructor stub
 	}
 
-	public WishlistModel(String wishlist_id, String item_id, String user_id) {
+	public WishlistModel(String wishlist_id, String product_id, String user_id) {
 		super();
 		Wishlist_id = wishlist_id;
-		Item_id = item_id;
+		Product_id = product_id;
 		User_id = user_id;
 	}
 
@@ -46,12 +46,12 @@ public class WishlistModel extends Model{
 		Wishlist_id = wishlist_id;
 	}
 
-	public String getItem_id() {
-		return Item_id;
+	public String getProduct_id() {
+		return Product_id;
 	}
 
-	public void setItem_id(String item_id) {
-		Item_id = item_id;
+	public void setProduct_id(String product_id) {
+		Product_id = product_id;
 	}
 
 	public String getUser_id() {
@@ -74,8 +74,8 @@ public class WishlistModel extends Model{
 		return this.hasOne(UserModel.class, "users", this.User_id, "User_id");
 	}
 	
-	public ItemModel item() {
-		return this.hasOne(ItemModel.class, "items", this.Item_id, "Item_id");
+	public ProductModel product() {
+		return this.hasOne(ProductModel.class, "products", this.Product_id, "Product_id");
 	}
 	
 	public ArrayList<WishlistModel> all(){

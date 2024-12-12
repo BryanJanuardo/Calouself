@@ -3,7 +3,7 @@ package Main;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 
-import Helper.IdGeneratorHelper;
+import Helpers.IdGeneratorHelper;
 import Models.ItemModel;
 import Models.OfferModel;
 import Models.ProductModel;
@@ -65,6 +65,7 @@ public final class Main extends Application {
     	
 //    	WishlistModel wishlist = new WishlistModel();
 //    	wishlist = wishlist.latest();
+//    	System.out.println(wishlist.product().getSeller_id());	
     	
     	//INSERT
 //    	WishlistModel wishlist = new WishlistModel();

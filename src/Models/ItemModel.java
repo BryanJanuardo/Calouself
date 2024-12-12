@@ -6,7 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-import Factory.SellerItemFactory;
+import Factories.SellerItemFactory;
 import Utils.ConnectionDB;
 import Utils.Response;
 
@@ -25,7 +25,6 @@ public class ItemModel extends Model{
 	public static Response<ItemModel> UploadItem(String Item_name, String Item_category, String Item_size, String Item_price) {
 		Response<ItemModel> res = new Response<ItemModel>();
 		
-		String query = "INSERT INTO items (Item_id, Item_name, Item_size, Item_price, Item_category, Item_status)";
 		return null;
 	}
 	
@@ -220,8 +219,6 @@ public class ItemModel extends Model{
 //					resultSellerItems.add();
 				}
 			}
-			
-			
 			
 			res.setMessages("Success: User Authenticated!");
 	        res.setIsSuccess(true);

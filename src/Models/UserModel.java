@@ -5,7 +5,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-import Helper.IdGeneratorHelper;
+import Helpers.IdGeneratorHelper;
 import Utils.ConnectionDB;
 import Utils.Response;
 
@@ -23,30 +23,10 @@ public class UserModel extends Model{
 	public static Response<UserModel> Login(String Username, String Password) {
 	    Response<UserModel> res = new Response<UserModel>();
 	    
-	    String query = "SELECT * FROM users WHERE Username = ?";
-	    
 	    try {
-	        ConnectionDB con = ConnectionDB.getInstance();
-	        PreparedStatement ps = con.prepareStatement(query);
-	        ps.setString(1, Username);
-	        
-	        ResultSet rs = con.execQuery(ps);  
-	        
-	        if (!rs.next()) {
-	            res.setMessages("Error: User Not Found!");
-	            res.setIsSuccess(false);
-	            res.setData(null);
-	            return res;
-	        }
-	        
-	        String user_id = rs.getString("User_id");
-	        String username = rs.getString("Username");
-	        String password = rs.getString("Password");
-	        String phone_Number = rs.getString("Phone_number");
-	        String address = rs.getString("Address");
-	        String role = rs.getString("Role");
-	        
-	        UserModel foundUser = new UserModel(user_id, username, password, phone_Number, address, role);  
+	        UserModel user = new UserModel();
+	        UserModel foundUser;
+	        foundUser = user.where("Username", "=", Username).get(0);
 
 	        if (!foundUser.getPassword().equals(Password)) {
 	            res.setMessages("Error: Wrong Password!");
@@ -60,13 +40,7 @@ public class UserModel extends Model{
 	        res.setData(foundUser);
 	        return res;
 	        
-	    } catch (SQLException e) {
-	        e.printStackTrace();
-	        res.setMessages("Error: " + e.getMessage() + "!");
-	        res.setIsSuccess(false);
-	        res.setData(null);
-	        return res;
-	    } catch (Exception e) {
+	    }  catch (Exception e) {
 	        e.printStackTrace();
 	        res.setMessages("Error: " + e.getMessage() + "!");
 	        res.setIsSuccess(false);
@@ -78,7 +52,6 @@ public class UserModel extends Model{
 	public static Response<UserModel> Register(String Username, String Password, String Phone_Number, String Address, String Role) {
 		Response<UserModel> res = new Response<UserModel>();
 	    
-	    String query = "INSERT INTO users (User_id, Username, Password, Phone_number, Address, Role) VALUES (?, ?, ?, ?, ?, ?)";
 	    try {
 	    	UserModel user = new UserModel();
 	    	user = user.latest();
@@ -89,35 +62,12 @@ public class UserModel extends Model{
 	    	}else {
 	    		newUserId = IdGeneratorHelper.generateNewId(user.getUser_id(), "US");
 	    	}
-	    			
-	        ConnectionDB con = ConnectionDB.getInstance();
-	        PreparedStatement ps = con.prepareStatement(query);
-	        ps.setString(1, newUserId);
-	        ps.setString(2, Username);
-	        ps.setString(3, Password);
-	        ps.setString(4, Phone_Number);
-	        ps.setString(5, Address);
-	        ps.setString(6, Role);
-
-	        int rowsInserted = con.execUpdate(ps);
-	        if (rowsInserted > 0) {
-	            res.setMessages("Success: User Registered!");
-	            res.setIsSuccess(true);
-	            res.setData(null);
-	            return res;
-	        }
 	        
-	        res.setMessages("Error: Register Failed!");
+	        res.setMessages("Success: User Registered!");
 	        res.setIsSuccess(true);
-	        res.setData(null);
+	        res.setData(user);
 	        return res;
 	        
-	    } catch (SQLException e) {
-	        e.printStackTrace();
-	        res.setMessages("Error: " + e.getMessage() + "!");
-	        res.setIsSuccess(false);
-	        res.setData(null);
-	        return res;
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	        res.setMessages("Error: " + e.getMessage() + "!");
@@ -129,43 +79,16 @@ public class UserModel extends Model{
 	
 	public static Response<UserModel> CheckAccountValidation(String Username, String Password, String Phone_Number, String Address) {
 		Response<UserModel> res = new Response<UserModel>();
-	    
-	    String query = "SELECT * FROM users WHERE Username = ?";
-	    
 	    try {
-	        ConnectionDB con = ConnectionDB.getInstance();
-	        PreparedStatement ps = con.prepareStatement(query);
-	        ps.setString(1, Username);
-	        
-	        ResultSet rs = con.execQuery(ps);  
-	        
-	        if (!rs.next()) {
-	            res.setMessages("Error: User Not Found!");
-	            res.setIsSuccess(false);
-	            res.setData(null);
-	            return res;
-	        }
-	        
-	        String user_id = rs.getString("User_id");
-	        String username = rs.getString("Username");
-	        String password = rs.getString("Password");
-	        String phone_Number = rs.getString("Phone_number");
-	        String address = rs.getString("Address");
-	        String role = rs.getString("Role");
-	        
-	        UserModel foundUser = new UserModel(user_id, username, password, phone_Number, address, role);  
+	    	UserModel user = new UserModel();
+	        UserModel foundUser;
+	        foundUser = user.where("Username", "=", Username).get(0);
 	        
 	        res.setMessages("Success: User Found!");
 	        res.setIsSuccess(true);
 	        res.setData(foundUser);
 	        return res;
 	        
-	    } catch (SQLException e) {
-	        e.printStackTrace();
-	        res.setMessages("Error: " + e.getMessage() + "!");
-	        res.setIsSuccess(false);
-	        res.setData(null);
-	        return res;
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	        res.setMessages("Error: " + e.getMessage() + "!");
@@ -254,12 +177,20 @@ public class UserModel extends Model{
 		return Primarykey;
 	}
 
-	public ArrayList<ProductModel> sellerItems(){
+	public ArrayList<ProductModel> products(){
 		return this.hasMany(ProductModel.class, "products", this.User_id, "Seller_id");
 	}
 	
 	public ArrayList<WishlistModel> wishlists(){
 		return this.hasMany(WishlistModel.class, "wishlists", this.User_id, "User_id");
+	}
+	
+	public ArrayList<TransactionModel> transactions(){
+		return this.hasMany(TransactionModel.class, "transactions", this.User_id, "User_id");
+	}
+	
+	public ArrayList<OfferModel> offers(){
+		return this.hasMany(OfferModel.class, "offers", this.User_id, "Buyer_id");
 	}
 	
 	public ArrayList<UserModel> all(){

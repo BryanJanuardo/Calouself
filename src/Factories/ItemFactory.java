@@ -1,4 +1,4 @@
-package Factory;
+package Factories;
 
 import java.math.BigDecimal;
 
