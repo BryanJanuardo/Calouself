@@ -11,6 +11,8 @@ import Utils.Response;
 
 public class ItemModel extends Model{
 	private String Tablename = "items";
+	private String Primarykey = "Item_id";
+	
 	private String Item_id;
 	private String Item_name;
 	private String Item_size;
@@ -350,6 +352,10 @@ public class ItemModel extends Model{
 		return Tablename;
 	}
 
+	public String getPrimarykey() {
+		return Primarykey;
+	}
+
 	public ArrayList<SellerItemModel> sellerItem() {
 		return this.hasMany(SellerItemModel.class, "seller_items", this.getItem_id(), "Item_id");
 	}
@@ -360,5 +366,21 @@ public class ItemModel extends Model{
 	
 	public ArrayList<ItemModel> where(String columnName, String operator, String key){
 		return super.where(ItemModel.class, columnName, operator, key);
+	}
+	
+	public ItemModel update(String fromKey) {
+		return super.update(ItemModel.class, fromKey);
+	}
+	
+	public ItemModel insert() {
+		return super.insert(ItemModel.class);
+	}
+	
+	public ItemModel find(String id) {
+		return super.find(ItemModel.class, id);
+	}
+	
+	public ItemModel latest() {
+		return super.latest(ItemModel.class);
 	}
 }

@@ -3,6 +3,7 @@ package Main;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 
+import Helper.IdGeneratorHelper;
 import Models.ItemModel;
 import Models.SellerItemModel;
 import Models.UserModel;
@@ -52,6 +53,32 @@ public final class Main extends Application {
 //    	for (WishlistModel wishlist : list3) {
 //			System.out.println(wishlist.getUser_id());
 //		}
+    	
+//    	UserModel user = new UserModel();
+//    	user = user.latest();
+    	
+//    	wishlist = wishlist.latest();
+//    	System.out.println(wishlist.getUser_id());
+//    	user.setUsername("Bryan");
+//    	user.set
+    	
+//    	WishlistModel wishlist = new WishlistModel();
+//    	wishlist = wishlist.latest();
+    	
+    	//INSERT
+//    	WishlistModel wishlist = new WishlistModel();
+//    	wishlist.setWishlist_id(IdGeneratorHelper.generateNewId(wishlist.latest().getWishlist_id(), "WS"));
+//    	wishlist.setUser_id("US0000000002");
+//    	wishlist.setItem_id("IT0000000004");
+//    	wishlist.insert();
+//    	System.out.println("Berhaisl!");
+    	
+    	//UPDATE
+//    	WishlistModel wishlist = new WishlistModel();
+//    	wishlist = wishlist.find("WS0000000006");
+//    	wishlist.setUser_id("US0000000002");
+//    	wishlist.update(wishlist.getWishlist_id());
+    	
     }
 
 }

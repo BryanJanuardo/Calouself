@@ -6,6 +6,8 @@ import Utils.Response;
 
 public class TransactionModel extends Model{
 	private String Tablename = "transactions";
+	private String Primarykey = "Transaction_id";
+	
 	private String User_id;
 	private String Item_id;
 	private String Transaction_id;	
@@ -64,6 +66,10 @@ public class TransactionModel extends Model{
 		return Tablename;
 	}
 	
+	public String getPrimarykey() {
+		return this.Primarykey;
+	}
+
 	public ArrayList<TransactionModel> all(){
 		return super.all(TransactionModel.class);
 	}
@@ -72,4 +78,19 @@ public class TransactionModel extends Model{
 		return super.where(TransactionModel.class, columnName, operator, key);
 	}
 
+	public TransactionModel update(String fromKey) {
+		return super.update(TransactionModel.class, fromKey);
+	}
+	
+	public TransactionModel insert() {
+		return super.insert(TransactionModel.class);
+	}
+	
+	public TransactionModel find(String id) {
+		return super.find(TransactionModel.class, id);
+	}
+	
+	public TransactionModel latest() {
+		return super.latest(TransactionModel.class);
+	}
 }

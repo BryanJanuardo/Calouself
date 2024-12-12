@@ -7,27 +7,29 @@ import Factory.UserFactory;
 
 public class SellerItemModel extends Model{
 	private String Tablename = "seller_items";
-	private Integer Id;
+	private String Primarykey = "id";
+	
+	private Integer id;
 	private String Item_id;
 	private String Seller_id;
 	
 	public SellerItemModel() {
 		
 	}
-
+	
 	public SellerItemModel(Integer id, String item_id, String seller_id) {
 		super();
-		Id = id;
+		this.id = id;
 		Item_id = item_id;
 		Seller_id = seller_id;
 	}
 
 	public Integer getId() {
-		return Id;
+		return id;
 	}
 
 	public void setId(Integer id) {
-		Id = id;
+		this.id = id;
 	}
 
 	public String getItem_id() {
@@ -44,10 +46,14 @@ public class SellerItemModel extends Model{
 
 	public void setSeller_id(String seller_id) {
 		Seller_id = seller_id;
-	}	
-	
+	}
+
 	public String getTablename() {
 		return Tablename;
+	}
+
+	public String getPrimarykey() {
+		return Primarykey;
 	}
 
 	public UserModel user() {
@@ -68,5 +74,21 @@ public class SellerItemModel extends Model{
 	
 	public ArrayList<SellerItemModel> where(String columnName, String operator, String key){
 		return super.where(SellerItemModel.class, columnName, operator, key);
+	}
+	
+	public SellerItemModel update(String fromKey) {
+		return super.update(SellerItemModel.class, fromKey);
+	}
+	
+	public SellerItemModel insert() {
+		return super.insert(SellerItemModel.class);
+	}
+	
+	public SellerItemModel find(String id) {
+		return super.find(SellerItemModel.class, id);
+	}
+	
+	public SellerItemModel latest() {
+		return super.latest(SellerItemModel.class);
 	}
 }

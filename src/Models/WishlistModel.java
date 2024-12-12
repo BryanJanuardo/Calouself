@@ -6,6 +6,8 @@ import Utils.Response;
 
 public class WishlistModel extends Model{
 	private String Tablename = "wishlists";
+	private String Primarykey = "Wishlist_id";
+	
 	private String Wishlist_id;
 	private String Item_id;
 	private String User_id;
@@ -64,6 +66,10 @@ public class WishlistModel extends Model{
 		return Tablename;
 	}
 	
+	public String getPrimarykey() {
+		return Primarykey;
+	}
+
 	public UserModel user() {
 		return this.hasOne(UserModel.class, "users", this.User_id, "User_id");
 	}
@@ -78,6 +84,22 @@ public class WishlistModel extends Model{
 	
 	public ArrayList<WishlistModel> where(String columnName, String operator, String key){
 		return super.where(WishlistModel.class, columnName, operator, key);
+	}
+	
+	public WishlistModel update(String fromKey) {
+		return super.update(WishlistModel.class, fromKey);
+	}
+	
+	public WishlistModel insert() {
+		return super.insert(WishlistModel.class);
+	}
+	
+	public WishlistModel find(String id) {
+		return super.find(WishlistModel.class, id);
+	}
+	
+	public WishlistModel latest() {
+		return super.latest(WishlistModel.class);
 	}
 
 }

@@ -10,7 +10,9 @@ import Utils.ConnectionDB;
 import Utils.Response;
 
 public class UserModel extends Model{
-	private String Tablename = "users";
+	private final String Tablename = "users";
+	private final String Primarykey = "User_id";
+	
 	private String User_id;
 	private String Username;
 	private String Password;
@@ -78,7 +80,8 @@ public class UserModel extends Model{
 	    
 	    String query = "INSERT INTO users (User_id, Username, Password, Phone_number, Address, Role) VALUES (?, ?, ?, ?, ?, ?)";
 	    try {
-	    	UserModel user = CheckAccountValidation(Username, Password, Phone_Number, Address).getData();
+	    	UserModel user = new UserModel();
+	    	user = user.latest();
 	    	String newUserId = "";
 	    	
 	    	if(user == null) {
@@ -247,6 +250,10 @@ public class UserModel extends Model{
 		return Tablename;
 	}
 	
+	public String getPrimarykey() {
+		return Primarykey;
+	}
+
 	public ArrayList<SellerItemModel> sellerItems(){
 		return this.hasMany(SellerItemModel.class, "seller_items", this.User_id, "Seller_id");
 	}
@@ -261,5 +268,21 @@ public class UserModel extends Model{
 	
 	public ArrayList<UserModel> where(String columnName, String operator, String key){
 		return super.where(UserModel.class, columnName, operator, key);
+	}
+	
+	public UserModel update(String fromKey) {
+		return super.update(UserModel.class, fromKey);
+	}
+	
+	public UserModel insert() {
+		return super.insert(UserModel.class);
+	}
+	
+	public UserModel find(String id) {
+		return super.find(UserModel.class, id);
+	}
+	
+	public UserModel latest() {
+		return super.latest(UserModel.class);
 	}
 }
