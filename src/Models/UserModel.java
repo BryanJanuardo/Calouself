@@ -254,8 +254,8 @@ public class UserModel extends Model{
 		return Primarykey;
 	}
 
-	public ArrayList<SellerItemModel> sellerItems(){
-		return this.hasMany(SellerItemModel.class, "seller_items", this.User_id, "Seller_id");
+	public ArrayList<ProductModel> sellerItems(){
+		return this.hasMany(ProductModel.class, "products", this.User_id, "Seller_id");
 	}
 	
 	public ArrayList<WishlistModel> wishlists(){

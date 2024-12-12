@@ -5,8 +5,8 @@ import java.util.ArrayList;
 import Utils.Response;
 
 public class WishlistModel extends Model{
-	private String Tablename = "wishlists";
-	private String Primarykey = "Wishlist_id";
+	private final String Tablename = "wishlists";
+	private final String Primarykey = "Wishlist_id";
 	
 	private String Wishlist_id;
 	private String Item_id;

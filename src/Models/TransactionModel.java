@@ -5,8 +5,8 @@ import java.util.ArrayList;
 import Utils.Response;
 
 public class TransactionModel extends Model{
-	private String Tablename = "transactions";
-	private String Primarykey = "Transaction_id";
+	private final String Tablename = "transactions";
+	private final String Primarykey = "Transaction_id";
 	
 	private String User_id;
 	private String Item_id;

@@ -5,7 +5,8 @@ import java.util.ArrayList;
 
 import Helper.IdGeneratorHelper;
 import Models.ItemModel;
-import Models.SellerItemModel;
+import Models.OfferModel;
+import Models.ProductModel;
 import Models.UserModel;
 import Models.WishlistModel;
 import javafx.application.Application;
@@ -20,15 +21,15 @@ public final class Main extends Application {
     @Override
     public void start(Stage stage) throws Exception {
 //    	UserModel user = UserModel.CheckAccountValidation("jane_seller", "12345", "+623213123", "Jalan kemanggisan").getData();
-//    	ArrayList<SellerItemModel> list;
+//    	ArrayList<ProductModel> list;
 //    	System.out.println(user.getUser_id());
 //    	System.out.println(user.getUsername());
 //    	System.out.println(user.getPassword());
 //    	System.out.println(user.getAddress());
 //    	list = user.sellerItems();
 //    	System.out.println("Tes Item");
-//    	for (SellerItemModel itemModel : list) {
-//    		System.out.println(itemModel.getItem_id());
+//    	for (ProductModel itemModel : list) {
+//    		System.out.println(itemModel.getProduct_id());
 //		}	
 //    	
 //    	UserModel tes = list.get(0).user();
@@ -38,11 +39,11 @@ public final class Main extends Application {
 //    	System.out.println(tes.getAddress());
 
     	
-//    	ArrayList<SellerItemModel> list2;
-//    	SellerItemModel items = new SellerItemModel();
+//    	ArrayList<ProductModel> list2;
+//    	ProductModel items = new ProductModel();
 //    	list2 = items.where("Item_id", "=", "IT0000000004");
 //    	
-//    	for (SellerItemModel itemModel : list2) {
+//    	for (ProductModel itemModel : list2) {
 //    		System.out.println(itemModel.getId());
 //		}
     	
@@ -79,6 +80,13 @@ public final class Main extends Application {
 //    	wishlist.setUser_id("US0000000002");
 //    	wishlist.update(wishlist.getWishlist_id());
     	
+//    	OfferModel offer = new OfferModel();
+//    	offer = offer.find("OF0000000003");
+//    	ArrayList<UserModel> users = offer.users();
+//
+//    	for (UserModel user : users) {
+//			System.out.println(user.getUsername());
+//		}
     }
 
 }

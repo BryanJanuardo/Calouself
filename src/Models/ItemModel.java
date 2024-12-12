@@ -1,5 +1,6 @@
 package Models;
 
+import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -10,13 +11,13 @@ import Utils.ConnectionDB;
 import Utils.Response;
 
 public class ItemModel extends Model{
-	private String Tablename = "items";
-	private String Primarykey = "Item_id";
+	private final String Tablename = "items";
+	private final String Primarykey = "Item_id";
 	
 	private String Item_id;
 	private String Item_name;
 	private String Item_size;
-	private String Item_price;
+	private BigDecimal Item_price;
 	private String Item_category;
 	private String Item_status;
 	private String Reason;
@@ -40,11 +41,11 @@ public class ItemModel extends Model{
 	
 	
 	//MAISH SALAH
-	public static Response<ArrayList<SellerItemModel>> BrowseItem(String Item_name){
-		Response<ArrayList<SellerItemModel>> res = new Response<ArrayList<SellerItemModel>>();
+	public static Response<ArrayList<ProductModel>> BrowseItem(String Item_name){
+		Response<ArrayList<ProductModel>> res = new Response<ArrayList<ProductModel>>();
 		
 		String query = "SELECT * FROM seller_items WHERE";
-		ArrayList<SellerItemModel> listSellerItems = new ArrayList<SellerItemModel>();
+		ArrayList<ProductModel> listSellerItems = new ArrayList<ProductModel>();
 		
 		try {
 			ConnectionDB con = ConnectionDB.getInstance();
@@ -62,10 +63,10 @@ public class ItemModel extends Model{
 	        }
 			
 			while(rs.next()) {
-				Integer id = rs.getInt("id");
+				String id = rs.getString("Product_id");
 				String itemId = rs.getString("Item_id");
 				String sellerId = rs.getString("Seller_id");
-				SellerItemModel sellerItem = new SellerItemModel(id, itemId, sellerId);
+				ProductModel sellerItem = new ProductModel(id, itemId, sellerId);
 				
 				listSellerItems.add(sellerItem);
 			}
@@ -89,11 +90,11 @@ public class ItemModel extends Model{
 	    }
 	}
 	
-	public static Response<ArrayList<SellerItemModel>> ViewItem(){
-		Response<ArrayList<SellerItemModel>> res = new Response<ArrayList<SellerItemModel>>();
+	public static Response<ArrayList<ProductModel>> ViewItem(){
+		Response<ArrayList<ProductModel>> res = new Response<ArrayList<ProductModel>>();
 		
 		String query = "SELECT * FROM seller_items";
-		ArrayList<SellerItemModel> listSellerItems = new ArrayList<SellerItemModel>();
+		ArrayList<ProductModel> listSellerItems = new ArrayList<ProductModel>();
 		
 		try {
 			ConnectionDB con = ConnectionDB.getInstance();
@@ -109,10 +110,10 @@ public class ItemModel extends Model{
 	        }
 			
 			while(rs.next()) {
-				Integer id = rs.getInt("id");
+				String id = rs.getString("Product_id");
 				String itemId = rs.getString("Item_id");
 				String sellerId = rs.getString("Seller_id");
-				SellerItemModel sellerItem = new SellerItemModel(id, itemId, sellerId);
+				ProductModel sellerItem = new ProductModel(id, itemId, sellerId);
 				
 				listSellerItems.add(sellerItem);
 			}
@@ -137,10 +138,10 @@ public class ItemModel extends Model{
 	}
 	
 	public static Response<ItemModel> CheckItemValidation(String Item_name, String Item_category, String Item_size, String Item_price) {
-		Response<ArrayList<SellerItemModel>> res = new Response<ArrayList<SellerItemModel>>();
+		Response<ArrayList<ProductModel>> res = new Response<ArrayList<ProductModel>>();
 		
 		String query = "SELECT * FROM seller_items";
-		ArrayList<SellerItemModel> listSellerItems = new ArrayList<SellerItemModel>();
+		ArrayList<ProductModel> listSellerItems = new ArrayList<ProductModel>();
 		
 		try {
 			ConnectionDB con = ConnectionDB.getInstance();
@@ -156,10 +157,10 @@ public class ItemModel extends Model{
 	        }
 			
 			while(rs.next()) {
-				Integer id = rs.getInt("id");
+				String id = rs.getString("Product_id");
 				String itemId = rs.getString("Item_id");
 				String sellerId = rs.getString("Seller_id");
-				SellerItemModel sellerItem = new SellerItemModel(id, itemId, sellerId);
+				ProductModel sellerItem = new ProductModel(id, itemId, sellerId);
 				
 				listSellerItems.add(sellerItem);
 			}
@@ -184,11 +185,11 @@ public class ItemModel extends Model{
 		return null;
 	}
 	
-	public static Response<ArrayList<SellerItemModel>> ViewRequestItem(String Item_id, String Item_status){
-		Response<ArrayList<SellerItemModel>> res = new Response<ArrayList<SellerItemModel>>();
+	public static Response<ArrayList<ProductModel>> ViewRequestItem(String Item_id, String Item_status){
+		Response<ArrayList<ProductModel>> res = new Response<ArrayList<ProductModel>>();
 		
 		String query = "SELECT * FROM seller_items";
-		ArrayList<SellerItemModel> listSellerItems = new ArrayList<SellerItemModel>();
+		ArrayList<ProductModel> listSellerItems = new ArrayList<ProductModel>();
 		
 		try {
 			ConnectionDB con = ConnectionDB.getInstance();
@@ -203,17 +204,17 @@ public class ItemModel extends Model{
 	        }
 			
 			while(rs.next()) {
-				Integer id = rs.getInt("id");
+				String id = rs.getString("Product_id");
 				String itemId = rs.getString("Item_id");
 				String sellerId = rs.getString("Seller_id");
-				SellerItemModel sellerItem = new SellerItemModel(id, itemId, sellerId);
+				ProductModel sellerItem = new ProductModel(id, itemId, sellerId);
 				
 				listSellerItems.add(sellerItem);
 			}
 			
 			ArrayList<ItemModel> itemsList = new ArrayList<ItemModel>();
-			ArrayList<SellerItemModel> resultSellerItems = new ArrayList<SellerItemModel>();
-			for (SellerItemModel sellerItem : listSellerItems) {
+			ArrayList<ProductModel> resultSellerItems = new ArrayList<ProductModel>();
+			for (ProductModel sellerItem : listSellerItems) {
 				ItemModel item = sellerItem.item();
 				if(item.getItem_status().equals("Pending")) {
 //					resultSellerItems.add();
@@ -280,7 +281,7 @@ public class ItemModel extends Model{
 		// TODO Auto-generated constructor stub
 	}
 
-	public ItemModel(String item_id, String item_name, String item_size, String item_price, String item_category,
+	public ItemModel(String item_id, String item_name, String item_size, BigDecimal item_price, String item_category,
 			String item_status, String reason) {
 		super();
 		Item_id = item_id;
@@ -316,11 +317,11 @@ public class ItemModel extends Model{
 		Item_size = item_size;
 	}
 
-	public String getItem_price() {
+	public BigDecimal getItem_price() {
 		return Item_price;
 	}
 
-	public void setItem_price(String item_price) {
+	public void setItem_price(BigDecimal item_price) {
 		Item_price = item_price;
 	}
 
@@ -356,8 +357,8 @@ public class ItemModel extends Model{
 		return Primarykey;
 	}
 
-	public ArrayList<SellerItemModel> sellerItem() {
-		return this.hasMany(SellerItemModel.class, "seller_items", this.getItem_id(), "Item_id");
+	public ArrayList<ProductModel> product() {
+		return this.hasMany(ProductModel.class, "products", this.getItem_id(), "Item_id");
 	}
 	
 	public ArrayList<ItemModel> all(){
