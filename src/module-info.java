@@ -13,5 +13,8 @@ module OOAD_LAB_PROJECTAKHIR {
 	opens Main;
 	opens Controllers;
 	opens Models;
-//	opens Views;
+	opens Views;
+	opens Factories;
+	opens Helpers;
+	opens Utils;
 }

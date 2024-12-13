@@ -2,6 +2,8 @@ package Models;
 
 import java.util.ArrayList;
 
+import Factories.WishlistFactory;
+import Helpers.IdGeneratorHelper;
 import Utils.Response;
 
 public class WishlistModel extends Model{
@@ -12,19 +14,73 @@ public class WishlistModel extends Model{
 	private String Product_id;
 	private String User_id;
 
-	public static Response<ArrayList<WishlistModel>> ViewWishlist(String Wishlist_id, String User_id){
-		
-		return null;
+	public static Response<ArrayList<WishlistModel>> ViewWishlist(String User_id){
+		Response<ArrayList<WishlistModel>> res = new Response<ArrayList<WishlistModel>>();
+
+		try {
+	    	ArrayList<WishlistModel> listWishlist = WishlistFactory.createWishlist().where("User_id", "=", User_id);
+	        
+	        res.setMessages("Success: All Wishlist Retrieved!");
+	        res.setIsSuccess(true);
+	        res.setData(listWishlist);
+	        return res;
+	        
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        res.setMessages("Error: " + e.getMessage() + "!");
+	        res.setIsSuccess(false);
+	        res.setData(null);
+	        return res;
+	    }
 	}
 	
-	public static Response<WishlistModel> AddWishlist(String Item_id, String User_id) {
+	public static Response<WishlistModel> AddWishlist(String Product_id, String User_id) {
+		Response<WishlistModel> res = new Response<WishlistModel>();
 
-		return null;
+		try {
+			WishlistModel wishlist = WishlistFactory.createWishlist(IdGeneratorHelper.generateNewId(WishlistFactory.createWishlist().latest().getWishlist_id(), "WS"), 
+					Product_id, User_id);
+			
+			wishlist.insert();
+			
+	        res.setMessages("Success: Wishlist Added!");
+	        res.setIsSuccess(true);
+	        res.setData(wishlist);
+	        return res;
+	        
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        res.setMessages("Error: " + e.getMessage() + "!");
+	        res.setIsSuccess(false);
+	        res.setData(null);
+	        return res;
+	    }
 	}
 	
 	public static Response<WishlistModel>  RemoveWishlist(String Wishlist_id) {
+		Response<WishlistModel> res = new Response<WishlistModel>();
 
-		return null;
+		try {
+			Boolean wishlist = WishlistFactory.createWishlist().delete(Wishlist_id);
+			
+			if(!wishlist) {
+				res.setMessages("Error: Deleteting Wishlist Failed!");
+				res.setIsSuccess(wishlist);
+				res.setData(null);
+				return res;				
+			}
+			
+	        res.setMessages("Success: Wishlist Removed!");
+	        res.setIsSuccess(wishlist);
+	        res.setData(null);
+	        return res;
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        res.setMessages("Error: " + e.getMessage() + "!");
+	        res.setIsSuccess(false);
+	        res.setData(null);
+	        return res;
+	    }
 	}
 	
 	public WishlistModel() {
@@ -94,12 +150,19 @@ public class WishlistModel extends Model{
 		return super.insert(WishlistModel.class);
 	}
 	
-	public WishlistModel find(String id) {
-		return super.find(WishlistModel.class, id);
+	public WishlistModel find(String fromKey) {
+		return super.find(WishlistModel.class, fromKey);
 	}
 	
 	public WishlistModel latest() {
 		return super.latest(WishlistModel.class);
 	}
 
+	public Boolean delete(String fromKey) {
+		return super.delete(WishlistModel.class, fromKey);
+	}
+	
+	public ArrayList<WishlistModel> whereIn(String columnName, ArrayList<String> listValues){
+		return super.whereIn(WishlistModel.class, columnName, listValues);
+	}
 }

@@ -6,7 +6,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-import Factories.SellerItemFactory;
+import Factories.ItemFactory;
+import Factories.OfferFactory;
+import Factories.ProductFactory;
+import Factories.TransactionFactory;
+import Helpers.IdGeneratorHelper;
 import Utils.ConnectionDB;
 import Utils.Response;
 
@@ -22,65 +26,110 @@ public class ItemModel extends Model{
 	private String Item_status;
 	private String Reason;
 	
-	public static Response<ItemModel> UploadItem(String Item_name, String Item_category, String Item_size, String Item_price) {
+	public static Response<ItemModel> UploadItem(String Item_name, String Item_category, String Item_size, BigDecimal Item_price) {
 		Response<ItemModel> res = new Response<ItemModel>();
 		
-		return null;
-	}
-	
-	public static Response<ItemModel>  EditItem(String Item_id, String Item_name, String Item_category, String Item_size, String Item_price) {
-		
-		return null;
-	}
-	
-	public static Response<ItemModel>  DeleteItem(String Item_id) {
-		
-		return null;
-	}
-	
-	
-	//MAISH SALAH
-	public static Response<ArrayList<ProductModel>> BrowseItem(String Item_name){
-		Response<ArrayList<ProductModel>> res = new Response<ArrayList<ProductModel>>();
-		
-		String query = "SELECT * FROM seller_items WHERE";
-		ArrayList<ProductModel> listSellerItems = new ArrayList<ProductModel>();
-		
 		try {
-			ConnectionDB con = ConnectionDB.getInstance();
-			PreparedStatement ps = con.prepareStatement(query);
+			res = ItemModel.CheckItemValidation(Item_name, Item_category, Item_size, Item_price);
 			
-			ps.setString(1, Item_name);
-			
-			ResultSet rs = con.execQuery(ps);
-			
-			if (!rs.next()) {
-	            res.setMessages("Error: Items Not Found!");
-	            res.setIsSuccess(false);
-	            res.setData(null);
-	            return res;
-	        }
-			
-			while(rs.next()) {
-				String id = rs.getString("Product_id");
-				String itemId = rs.getString("Item_id");
-				String sellerId = rs.getString("Seller_id");
-				ProductModel sellerItem = new ProductModel(id, itemId, sellerId);
-				
-				listSellerItems.add(sellerItem);
+			if(!res.getIsSuccess()) {
+				return res;				
 			}
 			
-			res.setMessages("Success: Return All Browse Items!");
-	        res.setIsSuccess(true);
-	        res.setData(listSellerItems);
-	        return res;
-		} catch (SQLException e) {
+			ItemModel item = ItemFactory.createItem(IdGeneratorHelper.generateNewId(ItemFactory.createItem().latest().getItem_id(), "IT"), 
+					Item_name, Item_size, Item_price, Item_category, "Pending", null);
+			
+			item.insert();
+			res.setMessages("Success: Item Uploaded!");
+			res.setIsSuccess(true);
+			res.setData(item);
+			return res;
+		} catch (Exception e) {
 	        e.printStackTrace();
 	        res.setMessages("Error: " + e.getMessage() + "!");
 	        res.setIsSuccess(false);
 	        res.setData(null);
 	        return res;
-	    } catch (Exception e) {
+	    }
+	}
+	
+	public static Response<ItemModel>  EditItem(String Item_id, String Item_name, String Item_category, String Item_size, BigDecimal Item_price) {
+		Response<ItemModel> res = new Response<ItemModel>();
+		
+		try {
+			res = ItemModel.CheckItemValidation(Item_id, Item_name, Item_category, Item_size, Item_price);
+
+			if(!res.getIsSuccess()) {
+				return res;
+			}
+			
+			ItemModel item = res.getData();
+			item.setItem_name(Item_name);
+			item.setItem_category(Item_category);
+			item.setItem_size(Item_size);
+			item.setItem_price(Item_price);
+			
+			item.update(item.getItem_id());
+			res.setMessages("Success: Item Updated!");
+			res.setIsSuccess(true);
+			res.setData(item);
+			return res;
+		} catch (Exception e) {
+	        e.printStackTrace();
+	        res.setMessages("Error: " + e.getMessage() + "!");
+	        res.setIsSuccess(false);
+	        res.setData(null);
+	        return res;
+	    }
+	}
+	
+	public static Response<ItemModel>  DeleteItem(String Item_id) {
+		Response<ItemModel> res = new Response<ItemModel>();
+		
+		try {
+			Boolean item = ItemFactory.createItem().find(Item_id).delete(Item_id);
+			
+			if(!item) {
+				res.setMessages("Error: Deleting Item Failed!");
+				res.setIsSuccess(false);
+				res.setData(null);
+				return res;
+			}
+			
+			res.setMessages("Success: Item Deleted!");
+			res.setIsSuccess(true);
+			res.setData(null);
+			return res;
+		} catch (Exception e) {
+	        e.printStackTrace();
+	        res.setMessages("Error: " + e.getMessage() + "!");
+	        res.setIsSuccess(false);
+	        res.setData(null);
+	        return res;
+	    }		
+	}
+	
+	
+	public static Response<ArrayList<ProductModel>> BrowseItem(String Item_name){
+		Response<ArrayList<ProductModel>> res = new Response<ArrayList<ProductModel>>();
+		
+		try {
+			ArrayList<ProductModel> listProduct = ProductFactory.createProduct().all();
+			ArrayList<String> ids = new ArrayList<String>();
+			
+			for (ProductModel product : listProduct) {
+				if(product.item().getItem_name().equals(Item_name)) {
+					ids.add(product.getProduct_id());
+				}
+			}
+			
+			listProduct = ProductFactory.createProduct().whereIn("Product_id", ids);
+			
+			res.setMessages("Success: Retrived All Browsed items!");
+			res.setIsSuccess(true);
+			res.setData(listProduct);
+			return res;
+		} catch (Exception e) {
 	        e.printStackTrace();
 	        res.setMessages("Error: " + e.getMessage() + "!");
 	        res.setIsSuccess(false);
@@ -91,43 +140,14 @@ public class ItemModel extends Model{
 	
 	public static Response<ArrayList<ProductModel>> ViewItem(){
 		Response<ArrayList<ProductModel>> res = new Response<ArrayList<ProductModel>>();
-		
-		String query = "SELECT * FROM seller_items";
-		ArrayList<ProductModel> listSellerItems = new ArrayList<ProductModel>();
-		
 		try {
-			ConnectionDB con = ConnectionDB.getInstance();
-			PreparedStatement ps = con.prepareStatement(query);
+			ArrayList<ProductModel> listProduct = ProductFactory.createProduct().all();
 			
-			ResultSet rs = con.execQuery(ps);
-			
-			if (!rs.next()) {
-	            res.setMessages("Error: Items Not Found!");
-	            res.setIsSuccess(false);
-	            res.setData(null);
-	            return res;
-	        }
-			
-			while(rs.next()) {
-				String id = rs.getString("Product_id");
-				String itemId = rs.getString("Item_id");
-				String sellerId = rs.getString("Seller_id");
-				ProductModel sellerItem = new ProductModel(id, itemId, sellerId);
-				
-				listSellerItems.add(sellerItem);
-			}
-			
-			res.setMessages("Success: User Authenticated!");
-	        res.setIsSuccess(true);
-	        res.setData(listSellerItems);
-	        return res;
-		} catch (SQLException e) {
-	        e.printStackTrace();
-	        res.setMessages("Error: " + e.getMessage() + "!");
-	        res.setIsSuccess(false);
-	        res.setData(null);
-	        return res;
-	    } catch (Exception e) {
+			res.setMessages("Success: Retrived All Browsed items!");
+			res.setIsSuccess(true);
+			res.setData(listProduct);
+			return res;
+		} catch (Exception e) {
 	        e.printStackTrace();
 	        res.setMessages("Error: " + e.getMessage() + "!");
 	        res.setIsSuccess(false);
@@ -136,101 +156,166 @@ public class ItemModel extends Model{
 	    }
 	}
 	
-	public static Response<ItemModel> CheckItemValidation(String Item_name, String Item_category, String Item_size, String Item_price) {
-		Response<ArrayList<ProductModel>> res = new Response<ArrayList<ProductModel>>();
+	public static Response<OfferModel> CheckItemValidation(String Product_id, BigDecimal Item_price) {
+		Response<OfferModel> res = new Response<OfferModel>();
+		OfferModel offer = OfferFactory.createOffer().where("Product_id", "=", Product_id).get(0);
 		
-		String query = "SELECT * FROM seller_items";
-		ArrayList<ProductModel> listSellerItems = new ArrayList<ProductModel>();
+		if(offer == null) {
+			res.setMessages("Error: Offer Not Found!");
+			res.setIsSuccess(false);
+			res.setData(null);
+			return res;
+		} else if(Item_price == null) {
+			res.setMessages("Error: Item Price Cannot Be Empty!");
+			res.setIsSuccess(false);
+			res.setData(null);
+			return res;
+		} else if(Item_price.compareTo(BigDecimal.ZERO) <= 0) {
+			res.setMessages("Error: Item Price Cannot Be 0!");
+			res.setIsSuccess(false);
+			res.setData(null);
+			return res;
+		} else if (Item_price instanceof BigDecimal) {
+			res.setMessages("Error: Item Price Must Be In Number");
+			res.setIsSuccess(false);
+			res.setData(null);
+			return res;
+		}
 		
-		try {
-			ConnectionDB con = ConnectionDB.getInstance();
-			PreparedStatement ps = con.prepareStatement(query);
-			
-			ResultSet rs = con.execQuery(ps);
-			
-			if (!rs.next()) {
-	            res.setMessages("Error: Items Not Found!");
-	            res.setIsSuccess(false);
-	            res.setData(null);
-//	            return res;
-	        }
-			
-			while(rs.next()) {
-				String id = rs.getString("Product_id");
-				String itemId = rs.getString("Item_id");
-				String sellerId = rs.getString("Seller_id");
-				ProductModel sellerItem = new ProductModel(id, itemId, sellerId);
-				
-				listSellerItems.add(sellerItem);
-			}
-			
-			res.setMessages("Success: User Authenticated!");
-	        res.setIsSuccess(true);
-	        res.setData(listSellerItems);
-//	        return res;
-		} catch (SQLException e) {
-	        e.printStackTrace();
-	        res.setMessages("Error: " + e.getMessage() + "!");
-	        res.setIsSuccess(false);
-	        res.setData(null);
-//	        return res;
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	        res.setMessages("Error: " + e.getMessage() + "!");
-	        res.setIsSuccess(false);
-	        res.setData(null);
-//	        return res;
-	    }
-		return null;
+		res.setMessages("Success: Item Validated!");
+		res.setIsSuccess(true);
+		res.setData(null);
+		return res;
+	}
+	
+	public static Response<ItemModel> CheckItemValidation(String Item_name, String Item_category, String Item_size, BigDecimal Item_price) {
+		Response<ItemModel> res = new Response<ItemModel>();
+		
+		if(Item_name.isEmpty()) {
+			res.setMessages("Error: Item Name Cannot Be Empty!");
+			res.setIsSuccess(false);
+			res.setData(null);
+			return res;
+		}else if(Item_name.length() < 3) {
+			res.setMessages("Error: Item Name Must At Least Be 3 Character Long!");
+			res.setIsSuccess(false);
+			res.setData(null);
+			return res;
+		}else if(Item_category.isEmpty()) {
+			res.setMessages("Error: Item Category Cannot Be Empty!");
+			res.setIsSuccess(false);
+			res.setData(null);
+			return res;
+		}else if(Item_category.length() < 3) {
+			res.setMessages("Error: Item Category Must At Least Be 3 Character Long!");
+			res.setIsSuccess(false);
+			res.setData(null);
+			return res;
+		}else if(Item_size.isEmpty()) {
+			res.setMessages("Error: Item Size Cannot Be Empty!");
+			res.setIsSuccess(false);
+			res.setData(null);
+			return res;
+		}else if(Item_price == null) {
+			res.setMessages("Error: Item Price Cannot Be Empty!");
+			res.setIsSuccess(false);
+			res.setData(null);
+			return res;
+		}else if(Item_price.compareTo(BigDecimal.ZERO) <= 0) {
+			res.setMessages("Error: Item Price Cannot Be 0!");
+			res.setIsSuccess(false);
+			res.setData(null);
+			return res;
+		}else if (Item_price instanceof BigDecimal) {
+			res.setMessages("Error: Item Price Must Be In Number");
+			res.setIsSuccess(false);
+			res.setData(null);
+			return res;
+		}
+		
+		res.setMessages("Success: Item Validated!");
+		res.setIsSuccess(true);
+		res.setData(null);
+		return res;
+	}
+	
+	public static Response<ItemModel> CheckItemValidation(String Item_id, String Item_name, String Item_category, String Item_size, BigDecimal Item_price) {
+		Response<ItemModel> res = new Response<ItemModel>();
+		ItemModel item = ItemFactory.createItem().find(Item_id);
+		
+		if(item == null) {
+			res.setMessages("Error: Item Not Found!");
+			res.setIsSuccess(false);
+			res.setData(null);
+			return res;
+		}else if(Item_name.isEmpty()) {
+			res.setMessages("Error: Item Name Cannot Be Empty!");
+			res.setIsSuccess(false);
+			res.setData(null);
+			return res;
+		}else if(Item_name.length() < 3) {
+			res.setMessages("Error: Item Name Must At Least Be 3 Character Long!");
+			res.setIsSuccess(false);
+			res.setData(null);
+			return res;
+		}else if(Item_category.isEmpty()) {
+			res.setMessages("Error: Item Category Cannot Be Empty!");
+			res.setIsSuccess(false);
+			res.setData(null);
+			return res;
+		}else if(Item_category.length() < 3) {
+			res.setMessages("Error: Item Category Must At Least Be 3 Character Long!");
+			res.setIsSuccess(false);
+			res.setData(null);
+			return res;
+		}else if(Item_size.isEmpty()) {
+			res.setMessages("Error: Item Size Cannot Be Empty!");
+			res.setIsSuccess(false);
+			res.setData(null);
+			return res;
+		}else if(Item_price == null) {
+			res.setMessages("Error: Item Price Cannot Be Empty!");
+			res.setIsSuccess(false);
+			res.setData(null);
+			return res;
+		}else if(Item_price.compareTo(BigDecimal.ZERO) <= 0) {
+			res.setMessages("Error: Item Price Cannot Be 0!");
+			res.setIsSuccess(false);
+			res.setData(null);
+			return res;
+		}else if (Item_price instanceof BigDecimal) {
+			res.setMessages("Error: Item Price Must Be In Number");
+			res.setIsSuccess(false);
+			res.setData(null);
+			return res;
+		}
+		
+		res.setMessages("Success: Item Validated!");
+		res.setIsSuccess(true);
+		res.setData(item);
+		return res;
 	}
 	
 	public static Response<ArrayList<ProductModel>> ViewRequestItem(String Item_id, String Item_status){
 		Response<ArrayList<ProductModel>> res = new Response<ArrayList<ProductModel>>();
 		
-		String query = "SELECT * FROM seller_items";
-		ArrayList<ProductModel> listSellerItems = new ArrayList<ProductModel>();
-		
 		try {
-			ConnectionDB con = ConnectionDB.getInstance();
-			PreparedStatement ps = con.prepareStatement(query);
-			ResultSet rs = con.execQuery(ps);
+			ArrayList<ProductModel> listProduct = ProductFactory.createProduct().all();
+			ArrayList<String> ids = new ArrayList<String>();
 			
-			if (!rs.next()) {
-	            res.setMessages("Error: Items Not Found!");
-	            res.setIsSuccess(false);
-	            res.setData(null);
-	            return res;
-	        }
-			
-			while(rs.next()) {
-				String id = rs.getString("Product_id");
-				String itemId = rs.getString("Item_id");
-				String sellerId = rs.getString("Seller_id");
-				ProductModel sellerItem = new ProductModel(id, itemId, sellerId);
-				
-				listSellerItems.add(sellerItem);
-			}
-			
-			ArrayList<ItemModel> itemsList = new ArrayList<ItemModel>();
-			ArrayList<ProductModel> resultSellerItems = new ArrayList<ProductModel>();
-			for (ProductModel sellerItem : listSellerItems) {
-				ItemModel item = sellerItem.item();
-				if(item.getItem_status().equals("Pending")) {
-//					resultSellerItems.add();
+			for (ProductModel product : listProduct) {
+				if(product.item().getItem_status().equals(Item_status)) {
+					ids.add(product.getProduct_id());
 				}
 			}
 			
-			res.setMessages("Success: User Authenticated!");
-	        res.setIsSuccess(true);
-	        res.setData(listSellerItems);
-	        return res;
-		} catch (SQLException e) {
-	        e.printStackTrace();
-	        res.setMessages("Error: " + e.getMessage() + "!");
-	        res.setIsSuccess(false);
-	        res.setData(null);
-	        return res;
-	    } catch (Exception e) {
+			listProduct = ProductFactory.createProduct().whereIn("Product_id", ids);
+			
+			res.setMessages("Success: Retrived All Browsed items!");
+			res.setIsSuccess(true);
+			res.setData(listProduct);
+			return res;
+		} catch (Exception e) {
 	        e.printStackTrace();
 	        res.setMessages("Error: " + e.getMessage() + "!");
 	        res.setIsSuccess(false);
@@ -239,19 +324,90 @@ public class ItemModel extends Model{
 	    }
 	}
 	
-	public static Response<ItemModel> OfferPrice(String Item_id, String Item_price) {
+	public static Response<OfferModel> OfferPrice(String Product_id, String Buyer_id, BigDecimal Item_price) {
+		Response<OfferModel> res = new Response<OfferModel>();
 		
-		return null;
+		try {
+			res = CheckItemValidation(Product_id, Item_price);
+			if(!res.getIsSuccess()) {
+				return res;
+			}
+			
+			OfferModel offer = OfferFactory.createOffer(IdGeneratorHelper.generateNewId(OfferFactory.createOffer().latest().getOffer_id(), "OF")
+					, Product_id, Buyer_id, Item_price, "Pending", null);
+			
+			offer.insert();
+			
+			res.setMessages("Success: Retrived All Browsed items!");
+			res.setIsSuccess(true);
+			res.setData(offer);
+			return res;
+		} catch (Exception e) {
+	        e.printStackTrace();
+	        res.setMessages("Error: " + e.getMessage() + "!");
+	        res.setIsSuccess(false);
+	        res.setData(null);
+	        return res;
+	    }
 	}
 	
-	public static Response<ItemModel> AcceptOffer(String Item_id) {
+	public static Response<OfferModel> AcceptOffer(String Offer_id) {
+		Response<OfferModel> res = new Response<OfferModel>();
 		
-		return null;
+		try {
+			OfferModel offer = OfferFactory.createOffer().find(Offer_id);
+			
+			if(offer == null) {
+				res.setMessages("Error: Offer Not Found!");
+				res.setIsSuccess(false);
+				res.setData(null);
+				return res;
+			}
+			
+			offer.setItem_offer_status("Accepted");
+			offer.update(Offer_id);
+			
+			TransactionModel.PurchaseItem(offer.getBuyer_id(), offer.getProduct_id());
+			res.setMessages("Success: Offer Accepted!");
+			res.setIsSuccess(true);
+			res.setData(offer);
+			return res;
+		} catch (Exception e) {
+	        e.printStackTrace();
+	        res.setMessages("Error: " + e.getMessage() + "!");
+	        res.setIsSuccess(false);
+	        res.setData(null);
+	        return res;
+	    }
 	}
 	
-	public static Response<ItemModel> DeclineOffer(String Item_id) {
+	public static Response<OfferModel> DeclineOffer(String Offer_id) {
+		Response<OfferModel> res = new Response<OfferModel>();
 		
-		return null;
+		try {
+			OfferModel offer = OfferFactory.createOffer().find(Offer_id);
+			
+			if(offer == null) {
+				res.setMessages("Error: Offer Not Found!");
+				res.setIsSuccess(false);
+				res.setData(null);
+				return res;
+			}
+			
+			offer.setItem_offer_status("Declined");
+			offer.update(Offer_id);
+			
+			res.setMessages("Success: Offer Declined!");
+			res.setIsSuccess(true);
+			res.setData(offer);
+			return res;
+		} catch (Exception e) {
+	        e.printStackTrace();
+	        res.setMessages("Error: " + e.getMessage() + "!");
+	        res.setIsSuccess(false);
+	        res.setData(null);
+	        return res;
+	    }
 	}
 	
 	public static Response<ItemModel> ApproveItem(String Item_id) {
@@ -374,11 +530,19 @@ public class ItemModel extends Model{
 		return super.insert(ItemModel.class);
 	}
 	
-	public ItemModel find(String id) {
-		return super.find(ItemModel.class, id);
+	public ItemModel find(String fromKey) {
+		return super.find(ItemModel.class, fromKey);
 	}
 	
 	public ItemModel latest() {
 		return super.latest(ItemModel.class);
+	}
+	
+	public Boolean delete(String fromKey) {
+		return super.delete(ItemModel.class, fromKey);
+	}
+	
+	public ArrayList<ItemModel> whereIn(String columnName, ArrayList<String> listValues){
+		return super.whereIn(ItemModel.class, columnName, listValues);
 	}
 }

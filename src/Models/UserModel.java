@@ -1,12 +1,9 @@
 package Models;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 
+import Factories.UserFactory;
 import Helpers.IdGeneratorHelper;
-import Utils.ConnectionDB;
 import Utils.Response;
 
 public class UserModel extends Model{
@@ -24,9 +21,7 @@ public class UserModel extends Model{
 	    Response<UserModel> res = new Response<UserModel>();
 	    
 	    try {
-	        UserModel user = new UserModel();
-	        UserModel foundUser;
-	        foundUser = user.where("Username", "=", Username).get(0);
+	        UserModel foundUser = UserFactory.createUser().where("Username", "=", Username).get(0);
 
 	        if (!foundUser.getPassword().equals(Password)) {
 	            res.setMessages("Error: Wrong Password!");
@@ -53,15 +48,10 @@ public class UserModel extends Model{
 		Response<UserModel> res = new Response<UserModel>();
 	    
 	    try {
-	    	UserModel user = new UserModel();
-	    	user = user.latest();
-	    	String newUserId = "";
-	    	
-	    	if(user == null) {
-	    		newUserId = "US0000000001";
-	    	}else {
-	    		newUserId = IdGeneratorHelper.generateNewId(user.getUser_id(), "US");
-	    	}
+	    	UserModel user = UserFactory.createUser(IdGeneratorHelper.generateNewId(UserFactory.createUser().latest().getUser_id(), "US"),
+	    			Username, Password, Phone_Number, Address, Role);
+	    
+	    	user.insert();
 	        
 	        res.setMessages("Success: User Registered!");
 	        res.setIsSuccess(true);
@@ -80,9 +70,7 @@ public class UserModel extends Model{
 	public static Response<UserModel> CheckAccountValidation(String Username, String Password, String Phone_Number, String Address) {
 		Response<UserModel> res = new Response<UserModel>();
 	    try {
-	    	UserModel user = new UserModel();
-	        UserModel foundUser;
-	        foundUser = user.where("Username", "=", Username).get(0);
+	        UserModel foundUser = UserFactory.createUser().where("Username", "=", Username).get(0);
 	        
 	        res.setMessages("Success: User Found!");
 	        res.setIsSuccess(true);
@@ -209,11 +197,19 @@ public class UserModel extends Model{
 		return super.insert(UserModel.class);
 	}
 	
-	public UserModel find(String id) {
-		return super.find(UserModel.class, id);
+	public UserModel find(String fromKey) {
+		return super.find(UserModel.class, fromKey);
 	}
 	
 	public UserModel latest() {
 		return super.latest(UserModel.class);
+	}
+	
+	public Boolean delete(String fromKey) {
+		return super.delete(UserModel.class, fromKey);
+	}
+	
+	public ArrayList<UserModel> whereIn(String columnName, ArrayList<String> listValues){
+		return super.whereIn(UserModel.class, columnName, listValues);
 	}
 }

@@ -2,9 +2,6 @@ package Models;
 
 import java.util.ArrayList;
 
-import Factories.ItemFactory;
-import Factories.UserFactory;
-
 public class ProductModel extends Model{
 	private final String Tablename = "products";
 	private final String Primarykey = "Product_id";
@@ -92,11 +89,19 @@ public class ProductModel extends Model{
 		return super.insert(ProductModel.class);
 	}
 	
-	public ProductModel find(String id) {
-		return super.find(ProductModel.class, id);
+	public ProductModel find(String fromKey) {
+		return super.find(ProductModel.class, fromKey);
 	}
 	
 	public ProductModel latest() {
 		return super.latest(ProductModel.class);
+	}
+	
+	public Boolean delete(String fromKey) {
+		return super.delete(ProductModel.class, fromKey);
+	}
+	
+	public ArrayList<ProductModel> whereIn(String columnName, ArrayList<String> listValues){
+		return super.whereIn(ProductModel.class, columnName, listValues);
 	}
 }

@@ -8,8 +8,12 @@ public class UserFactory {
 		// TODO Auto-generated constructor stub
 	}
 	
-	public static UserModel createUser(String User_id, String Username, String Password, String Phone_number, String Address, String Role) {
-		return new UserModel(User_id, Username, Password, Phone_number, Address, Role);
+	public static UserModel createUser() {
+		return new UserModel();
+	}
+	
+	public static UserModel createUser(String user_id, String username, String password, String phone_number, String address, String role) {
+		return new UserModel(user_id, username, password, phone_number, address, role);
 	}
 
 }

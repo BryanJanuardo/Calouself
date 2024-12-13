@@ -109,12 +109,19 @@ public class OfferModel extends Model{
 		return super.insert(OfferModel.class);
 	}
 	
-	public OfferModel find(String id) {
-		return super.find(OfferModel.class, id);
+	public OfferModel find(String fromKey) {
+		return super.find(OfferModel.class, fromKey);
 	}
 	
 	public OfferModel latest() {
 		return super.latest(OfferModel.class);
 	}
 
+	public Boolean delete(String fromKey) {
+		return super.delete(OfferModel.class, fromKey);
+	}
+	
+	public ArrayList<OfferModel> whereIn(String columnName, ArrayList<String> listValues){
+		return super.whereIn(OfferModel.class, columnName, listValues);
+	}
 }

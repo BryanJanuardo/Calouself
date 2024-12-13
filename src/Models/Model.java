@@ -233,6 +233,66 @@ public abstract class Model {
 		return null;
 	}
 	
+	protected <FromModel> ArrayList<FromModel> whereIn(Class<FromModel> model, String columnName, ArrayList<String> ids) {
+	    try {
+	    	
+	    	StringBuilder queryIds = new StringBuilder();
+	    	
+	    	for(int i = 0; i < ids.size(); i++) {
+	    		if(queryIds.length() > 0) {
+	    			queryIds.append(", ");
+	    		}
+	    		queryIds.append("?");	    		
+	    	}
+
+	        String query = "SELECT * FROM " + getTablename() + " WHERE " + columnName + " IN (" + queryIds + ")";
+	        ConnectionDB con = ConnectionDB.getInstance();
+	        PreparedStatement ps = con.prepareStatement(query);
+	        
+	        for(int i = 0; i < ids.size(); i++) {
+	    		ps.setString(i + 1, ids.get(i));	    		
+	    	}
+
+	        ResultSet rs = con.execQuery(ps);
+	        ArrayList<FromModel> listToModels = new ArrayList<>();
+	        while (rs.next()) {
+	            FromModel instance = model.getDeclaredConstructor().newInstance();
+	            Field[] fields = instance.getClass().getDeclaredFields();
+	            for (Field field : fields) {
+	                if (field.getName().equals("Tablename") || field.getName().equals("Primarykey")) continue;
+	                field.setAccessible(true);
+	                Object value = rs.getObject(field.getName());
+	                field.set(instance, value);
+	            }
+	            listToModels.add(instance);
+	        }
+
+	        return listToModels;
+	    } catch (SQLException | ReflectiveOperationException e) {
+	        e.printStackTrace();
+	    }
+	    return null;
+	}
+	
+	protected <FromModel> Boolean delete(Class<FromModel> model, String fromKey){	
+		try {
+			String query = "DELETE FROM " + getTablename() + " WHERE " + this.getPrimarykey() + " = ?";
+			
+			ConnectionDB con = ConnectionDB.getInstance();
+            PreparedStatement ps = con.prepareStatement(query);
+            ps.setString(1, fromKey);
+            con.execUpdate(ps);
+            
+            return true;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace(); 
+		}
+		
+		return false;
+	}
+	
 	protected <FromModel> FromModel latest(Class<FromModel> model) {
 		try {
 			String query = "SELECT * FROM " + getTablename() + " ORDER BY " + getPrimarykey() + " DESC LIMIT 1";

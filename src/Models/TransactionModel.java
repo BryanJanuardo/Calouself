@@ -2,6 +2,8 @@ package Models;
 
 import java.util.ArrayList;
 
+import Factories.TransactionFactory;
+import Helpers.IdGeneratorHelper;
 import Utils.Response;
 
 public class TransactionModel extends Model{
@@ -12,20 +14,49 @@ public class TransactionModel extends Model{
 	private String Product_id;
 	private String Transaction_id;	
 	
-	public static Response<TransactionModel> PurchaseItem(String User_id, String Item_id) {
-		
-		return null;
+	public static Response<TransactionModel> PurchaseItem(String Buyer_id, String Product_id) {
+		Response<TransactionModel> res = new Response<TransactionModel>();
+	    
+	    try {
+	    	TransactionModel transaction = TransactionFactory.createTransaction(Buyer_id, Product_id, 
+	    			IdGeneratorHelper.generateNewId(TransactionFactory.createTransaction().latest().getTransaction_id(), "TR"));
+	    	
+	    	transaction.insert();
+	        
+	        res.setMessages("Success: Item Purchased!");
+	        res.setIsSuccess(true);
+	        res.setData(transaction);
+	        return res;
+	        
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        res.setMessages("Error: " + e.getMessage() + "!");
+	        res.setIsSuccess(false);
+	        res.setData(null);
+	        return res;
+	    }
 	}
 	
 	public static Response<ArrayList<TransactionModel>> ViewHistory(String User_id){
+		Response<ArrayList<TransactionModel>> res = new Response<ArrayList<TransactionModel>>();
 		
-		return null;
+		try {
+			ArrayList<TransactionModel> listTransaction = TransactionFactory.createTransaction().where("User_id", "=", User_id);
+			
+			res.setMessages("Success: All Transaction History Retrieved!");
+			res.setIsSuccess(true);
+			res.setData(listTransaction);
+			return res;
+		} catch (Exception e) {
+	        e.printStackTrace();
+	        res.setMessages("Error: " + e.getMessage() + "!");
+	        res.setIsSuccess(false);
+	        res.setData(null);
+	        return res;
+	    }
 	}
 	
-	public static Response<TransactionModel> CreateTransaction(String Transaction_id) {
-
-		return null;
-	}
+	
 	
 	public TransactionModel() {
 		// TODO Auto-generated constructor stub
@@ -94,11 +125,19 @@ public class TransactionModel extends Model{
 		return super.insert(TransactionModel.class);
 	}
 	
-	public TransactionModel find(String id) {
-		return super.find(TransactionModel.class, id);
+	public TransactionModel find(String fromKey) {
+		return super.find(TransactionModel.class, fromKey);
 	}
 	
 	public TransactionModel latest() {
 		return super.latest(TransactionModel.class);
+	}
+	
+	public Boolean delete(String fromKey) {
+		return super.delete(TransactionModel.class, fromKey);
+	}
+	
+	public ArrayList<TransactionModel> whereIn(String columnName, ArrayList<String> listValues){
+		return super.whereIn(TransactionModel.class, columnName, listValues);
 	}
 }
