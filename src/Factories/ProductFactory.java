@@ -1,8 +1,6 @@
 package Factories;
 
-import Models.ItemModel;
 import Models.ProductModel;
-import Models.UserModel;
 
 public class ProductFactory implements Factory{
 

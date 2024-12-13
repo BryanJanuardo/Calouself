@@ -1,17 +1,12 @@
 package Models;
 
 import java.math.BigDecimal;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 
 import Factories.ItemFactory;
 import Factories.OfferFactory;
 import Factories.ProductFactory;
-import Factories.TransactionFactory;
 import Helpers.IdGeneratorHelper;
-import Utils.ConnectionDB;
 import Utils.Response;
 
 public class ItemModel extends Model{
@@ -118,7 +113,8 @@ public class ItemModel extends Model{
 			ArrayList<String> ids = new ArrayList<String>();
 			
 			for (ProductModel product : listProduct) {
-				if(product.item().getItem_name().equals(Item_name)) {
+				ItemModel item = product.item();
+				if(item.getItem_name().toLowerCase().contains(Item_name.toLowerCase()) && item.getItem_status().equals("Approved")) {
 					ids.add(product.getProduct_id());
 				}
 			}
@@ -142,7 +138,16 @@ public class ItemModel extends Model{
 		Response<ArrayList<ProductModel>> res = new Response<ArrayList<ProductModel>>();
 		try {
 			ArrayList<ProductModel> listProduct = ProductFactory.createProduct().all();
+			ArrayList<String> ids = new ArrayList<String>();
 			
+			for (ProductModel product : listProduct) {
+				ItemModel item = product.item();
+				if(item.getItem_status().equals("Approved")) {
+					ids.add(product.getProduct_id());
+				}
+			}
+			
+			listProduct = ProductFactory.createProduct().whereIn("Product_id", ids);
 			res.setMessages("Success: Retrived All Browsed items!");
 			res.setIsSuccess(true);
 			res.setData(listProduct);
@@ -158,10 +163,10 @@ public class ItemModel extends Model{
 	
 	public static Response<OfferModel> CheckItemValidation(String Product_id, BigDecimal Item_price) {
 		Response<OfferModel> res = new Response<OfferModel>();
-		OfferModel offer = OfferFactory.createOffer().where("Product_id", "=", Product_id).get(0);
+		ProductModel product = ProductFactory.createProduct().find(Product_id);
 		
-		if(offer == null) {
-			res.setMessages("Error: Offer Not Found!");
+		if(product == null) {
+			res.setMessages("Error: Product Not Found!");
 			res.setIsSuccess(false);
 			res.setData(null);
 			return res;
@@ -175,7 +180,7 @@ public class ItemModel extends Model{
 			res.setIsSuccess(false);
 			res.setData(null);
 			return res;
-		} else if (Item_price instanceof BigDecimal) {
+		} else if(Item_price instanceof BigDecimal) {
 			res.setMessages("Error: Item Price Must Be In Number");
 			res.setIsSuccess(false);
 			res.setData(null);
@@ -296,7 +301,7 @@ public class ItemModel extends Model{
 		return res;
 	}
 	
-	public static Response<ArrayList<ProductModel>> ViewRequestItem(String Item_id, String Item_status){
+	public static Response<ArrayList<ProductModel>> ViewRequestItem(){
 		Response<ArrayList<ProductModel>> res = new Response<ArrayList<ProductModel>>();
 		
 		try {
@@ -304,7 +309,7 @@ public class ItemModel extends Model{
 			ArrayList<String> ids = new ArrayList<String>();
 			
 			for (ProductModel product : listProduct) {
-				if(product.item().getItem_status().equals(Item_status)) {
+				if(product.item().getItem_status().equals("Pending")) {
 					ids.add(product.getProduct_id());
 				}
 			}
@@ -333,14 +338,35 @@ public class ItemModel extends Model{
 				return res;
 			}
 			
-			OfferModel offer = OfferFactory.createOffer(IdGeneratorHelper.generateNewId(OfferFactory.createOffer().latest().getOffer_id(), "OF")
-					, Product_id, Buyer_id, Item_price, "Pending", null);
+			ArrayList<OfferModel> offers = OfferFactory.createOffer().where("Product_id", "=", Product_id);
+			OfferModel buyerOffer = null;
+			for (OfferModel offer : offers){
+				if(offer.getBuyer_id().equals(Buyer_id)) {
+					buyerOffer = offer;
+					break;
+				}
+			}
 			
-			offer.insert();
+			if(buyerOffer == null) {
+				buyerOffer = OfferFactory.createOffer(IdGeneratorHelper.generateNewId(OfferFactory.createOffer().latest().getOffer_id(), "OF")
+						, Product_id, Buyer_id, Item_price, "Pending", null);
+				
+				buyerOffer.insert();				
+			}else {
+				if(buyerOffer.getItem_offer_price().compareTo(Item_price) >= 0) {
+					res.setMessages("Item Price Cannot Be Lower Than The Highest Offer");
+					res.setIsSuccess(false);
+					res.setData(null);
+					return res;
+				}
+				
+				buyerOffer.setItem_offer_price(Item_price);
+				buyerOffer.update(buyerOffer.getOffer_id());
+			}
 			
-			res.setMessages("Success: Retrived All Browsed items!");
+			res.setMessages("Success: Item Offered!");
 			res.setIsSuccess(true);
-			res.setData(offer);
+			res.setData(buyerOffer);
 			return res;
 		} catch (Exception e) {
 	        e.printStackTrace();

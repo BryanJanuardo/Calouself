@@ -3,6 +3,7 @@ package Models;
 import java.util.ArrayList;
 
 import Factories.TransactionFactory;
+import Factories.WishlistFactory;
 import Helpers.IdGeneratorHelper;
 import Utils.Response;
 
@@ -23,6 +24,11 @@ public class TransactionModel extends Model{
 	    	
 	    	transaction.insert();
 	        
+	    	ArrayList<WishlistModel> wishlists = WishlistFactory.createWishlist().where("Product_id", "=", Product_id);
+	    	for (WishlistModel wishlist : wishlists) {
+				WishlistModel.RemoveWishlist(wishlist.getWishlist_id());
+			}
+	    	
 	        res.setMessages("Success: Item Purchased!");
 	        res.setIsSuccess(true);
 	        res.setData(transaction);
