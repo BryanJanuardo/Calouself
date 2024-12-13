@@ -1,33 +1,32 @@
 package Managers;
 
 import Models.UserModel;
-import javafx.scene.Parent;
+import Views.LoginPage;
+import Views.Page;
 import javafx.scene.Scene;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
 public class ViewManager {
-	private Parent currentView;
 	private Stage stage;
+	private Scene scene;
 	private UserModel user = null;
 	
-	public ViewManager() {
-		// TODO Auto-generated constructor stub
+	public ViewManager(Stage stage) {
+		this.stage = stage;
+		scene = new Scene(new LoginPage(this).getPage(), 600, 400);		
+		stage.setScene(scene);
+		stage.show();
 	}
 	
-	public ViewManager(Parent currentView, Stage stage) {
-		super();
-		this.currentView = currentView;
-		this.stage = stage;
+	public void changePage(StackPane view) {
+		 if (stage.getScene() == null) {
+	        scene = new Scene(view, 400, 300);
+	        stage.setScene(scene);
+	    }
+		stage.getScene().setRoot(view);
 	}
-
-	public Parent getCurrentView() {
-		return currentView;
-	}
-
-	public void setCurrentView(Parent currentView) {
-		this.currentView = currentView;
-	}
-
+	
 	public Stage getStage() {
 		return stage;
 	}

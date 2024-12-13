@@ -17,4 +17,5 @@ module OOAD_LAB_PROJECTAKHIR {
 	opens Factories;
 	opens Helpers;
 	opens Utils;
+	opens Managers;
 }

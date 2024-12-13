@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 
 import Helpers.IdGeneratorHelper;
+import Managers.ViewManager;
 import Models.ItemModel;
 import Models.OfferModel;
 import Models.ProductModel;
@@ -20,6 +21,9 @@ public final class Main extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
+    	
+    	ViewManager viewManager = new ViewManager(stage);
+    	
 //    	UserModel user = UserModel.CheckAccountValidation("jane_seller", "12345", "+623213123", "Jalan kemanggisan").getData();
 //    	ArrayList<ProductModel> list;
 //    	System.out.println(user.getUser_id());
