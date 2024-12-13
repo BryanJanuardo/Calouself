@@ -411,23 +411,115 @@ public class ItemModel extends Model{
 	}
 	
 	public static Response<ItemModel> ApproveItem(String Item_id) {
+		Response<ItemModel> res = new Response<ItemModel>();
 		
-		return null;
+		try {
+			ItemModel item = ItemFactory.createItem().find(Item_id);
+			
+			if(item == null) {
+				res.setMessages("Error: Item Not Found!");
+				res.setIsSuccess(false);
+				res.setData(null);
+				return res;
+			}
+
+			item.setItem_status("Approved");
+			item.update(Item_id);
+			
+			res.setMessages("Success: Item Approved!");
+			res.setIsSuccess(true);
+			res.setData(item);
+			return res;
+		} catch (Exception e) {
+	        e.printStackTrace();
+	        res.setMessages("Error: " + e.getMessage() + "!");
+	        res.setIsSuccess(false);
+	        res.setData(null);
+	        return res;
+	    }
 	}
 	
 	public static Response<ItemModel> DeclineItem(String Item_id) {
+		Response<ItemModel> res = new Response<ItemModel>();
 		
-		return null;
+		try {
+			ItemModel item = ItemFactory.createItem().find(Item_id);
+			
+			if(item == null) {
+				res.setMessages("Error: Item Not Found!");
+				res.setIsSuccess(false);
+				res.setData(null);
+				return res;
+			}
+
+			item.setItem_status("Declined");
+			item.update(Item_id);
+			
+			res.setMessages("Success: Item Declined!");
+			res.setIsSuccess(true);
+			res.setData(item);
+			return res;
+		} catch (Exception e) {
+	        e.printStackTrace();
+	        res.setMessages("Error: " + e.getMessage() + "!");
+	        res.setIsSuccess(false);
+	        res.setData(null);
+	        return res;
+	    }
 	}
 	
-	public static Response<ArrayList<ItemModel>> ViewAcceptedItem(String Item_id){
+	public static Response<ArrayList<ProductModel>> ViewAcceptedItem(String Item_id){
+		Response<ArrayList<ProductModel>> res = new Response<ArrayList<ProductModel>>();
 		
-		return null;
+		try {
+			ArrayList<ProductModel> listProduct = ProductFactory.createProduct().all();
+			ArrayList<String> ids = new ArrayList<String>();
+			
+			for (ProductModel product : listProduct) {
+				if(product.item().getItem_status().equals("Approved")) {
+					ids.add(product.getProduct_id());
+				}
+			}
+			
+			listProduct = ProductFactory.createProduct().whereIn("Product_id", ids);
+			
+			res.setMessages("Success: Retrived All Approved items!");
+			res.setIsSuccess(true);
+			res.setData(listProduct);
+			return res;
+		} catch (Exception e) {
+	        e.printStackTrace();
+	        res.setMessages("Error: " + e.getMessage() + "!");
+	        res.setIsSuccess(false);
+	        res.setData(null);
+	        return res;
+	    }
 	}
 	
-	public static Response<ArrayList<ItemModel>> ViewOfferItem(String Item_id){
+	public static Response<ArrayList<OfferModel>> ViewOfferItem(String User_id){
+		Response<ArrayList<OfferModel>> res = new Response<ArrayList<OfferModel>>();
 		
-		return null;
+		try {
+			ArrayList<ProductModel> listProduct = ProductFactory.createProduct().where("Seller_id", "=", User_id);
+			ArrayList<OfferModel> listOffer = new ArrayList<OfferModel>();
+			
+			for (ProductModel product : listProduct) {
+				for (OfferModel offer : product.offers()) {
+					listOffer.add(offer);					
+				}
+			}
+			
+			res.setMessages("Success: Retrived All Offered items!");
+			res.setIsSuccess(true);
+			res.setData(listOffer);
+			return res;
+		} catch (Exception e) {
+	        e.printStackTrace();
+	        res.setMessages("Error: " + e.getMessage() + "!");
+	        res.setIsSuccess(false);
+	        res.setData(null);
+	        return res;
+	    }
 	}
 	
 	public ItemModel() {
