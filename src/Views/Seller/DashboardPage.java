@@ -1,6 +1,7 @@
 package Views.Seller;
 
 import Managers.ViewManager;
+import Views.LoginPage;
 import Views.Page;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -16,8 +17,10 @@ public class DashboardPage implements Page {
     // Navbar
     private HBox navBar;
     private Button menuButton;
+    
     private ContextMenu menuContext; 
     private MenuItem offeredItemMenu; 
+    private MenuItem signOutMenu;
 
     // Main layout (isi konten utama)
     private VBox mainLayout;
@@ -50,6 +53,7 @@ public class DashboardPage implements Page {
         itemCategoryField = new TextField();
         itemSizeField = new TextField();
         itemPriceField = new TextField();
+        
 
         // Initialize table
         itemsTable = new TableView<>();
@@ -112,7 +116,8 @@ public class DashboardPage implements Page {
         // ContextMenu untuk menu
         menuContext = new ContextMenu();
         offeredItemMenu = new MenuItem("Offered Item");
-        menuContext.getItems().add(offeredItemMenu);
+        signOutMenu = new MenuItem("Sign Out");
+        menuContext.getItems().addAll(offeredItemMenu, signOutMenu);
 
         // Main layout (konten utama)
         mainLayout = new VBox();
@@ -146,6 +151,11 @@ public class DashboardPage implements Page {
         // Saat offered item di klik, saat ini hanya menampilkan alert "belum dibuat"
         offeredItemMenu.setOnAction(e -> {
             viewManager.switchPage(new OfferPage(viewManager));
+        });
+        
+        signOutMenu.setOnAction(e -> {
+            viewManager.logout();
+            viewManager.changePage(new LoginPage(viewManager).getPage());
         });
 
         // Save Button Action
