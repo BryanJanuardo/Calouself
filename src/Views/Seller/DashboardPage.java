@@ -13,10 +13,27 @@ public class DashboardPage implements Page {
     private ViewManager viewManager;
     private StackPane root;
 
-    // UI Components
+    // Navbar
+    private HBox navBar;
+    private Button menuButton;
+    private ContextMenu menuContext; 
+    private MenuItem offeredItemMenu; 
+
+    // Main layout (isi konten utama)
+    private VBox mainLayout;
+
+    // UI Components (untuk upload item)
     private TextField itemNameField, itemCategoryField, itemSizeField, itemPriceField;
     private TableView<String> itemsTable;
     private Label errorMessage;
+
+    // Komponen untuk upload form & tabel
+    private Label titleLabel;
+    private GridPane uploadForm;
+    private Label tableLabel;
+    private Button editButton;
+    private Button deleteButton;
+    private HBox actionButtons;
 
     public DashboardPage(ViewManager viewManager) {
         this.viewManager = viewManager;
@@ -38,28 +55,21 @@ public class DashboardPage implements Page {
         itemsTable = new TableView<>();
         TableColumn<String, String> idColumn = new TableColumn<>("ID");
         TableColumn<String, String> nameColumn = new TableColumn<>("Item Name");
-        TableColumn<String, String> categoryColumn = new TableColumn<>("Category");
-        TableColumn<String, String> sizeColumn = new TableColumn<>("Size");
-        TableColumn<String, String> priceColumn = new TableColumn<>("Price");
+        TableColumn<String, String> categoryColumn = new TableColumn<>("Item Category");
+        TableColumn<String, String> sizeColumn = new TableColumn<>("Item Size");
+        TableColumn<String, String> priceColumn = new TableColumn<>("Item Price");
 
         itemsTable.getColumns().addAll(idColumn, nameColumn, categoryColumn, sizeColumn, priceColumn);
 
         // Initialize error message
         errorMessage = new Label();
         errorMessage.setStyle("-fx-text-fill: red;");
-    }
 
-    @Override
-    public void setLayout() {
-        VBox mainLayout = new VBox();
-        mainLayout.setSpacing(10);
-        mainLayout.setPadding(new Insets(10));
-
-        // Upload Item Form
-        Label titleLabel = new Label("Upload Item");
+        // Buat komponen upload form
+        titleLabel = new Label("Upload Item");
         titleLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
 
-        GridPane uploadForm = new GridPane();
+        uploadForm = new GridPane();
         uploadForm.setHgap(10);
         uploadForm.setVgap(10);
 
@@ -81,26 +91,65 @@ public class DashboardPage implements Page {
         uploadForm.add(errorMessage, 1, 5);
 
         // Table View for Items
-        Label tableLabel = new Label("Uploaded Items");
+        tableLabel = new Label("Uploaded Items");
         tableLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
 
-        Button editButton = new Button("EDIT");
-        Button deleteButton = new Button("DELETE");
-        HBox actionButtons = new HBox(10, editButton, deleteButton);
+        editButton = new Button("EDIT");
+        deleteButton = new Button("DELETE");
+        actionButtons = new HBox(10, editButton, deleteButton);
         actionButtons.setAlignment(Pos.CENTER);
 
-        // Main Layout
-        mainLayout.getChildren().addAll(titleLabel, uploadForm, tableLabel, itemsTable, actionButtons);
+        // Navbar
+        navBar = new HBox();
+        navBar.setPadding(new Insets(10));
+        navBar.setSpacing(10);
+        navBar.setStyle("-fx-background-color: #333;");
 
-        // Root
-        root.getChildren().add(mainLayout);
+        menuButton = new Button("Menu");
+        menuButton.setStyle("-fx-text-fill: white; -fx-background-color: #555;");
+        navBar.getChildren().add(menuButton);
+
+        // ContextMenu untuk menu
+        menuContext = new ContextMenu();
+        offeredItemMenu = new MenuItem("Offered Item");
+        menuContext.getItems().add(offeredItemMenu);
+
+        // Main layout (konten utama)
+        mainLayout = new VBox();
+        mainLayout.setSpacing(10);
+        mainLayout.setPadding(new Insets(10));
+
+        // Awal tampilkan form upload item dan tabel di halaman utama
+        mainLayout.getChildren().addAll(titleLabel, uploadForm, tableLabel, itemsTable, actionButtons);
+    }
+
+    @Override
+    public void setLayout() {
+        // Bungkus navbar dan mainLayout dalam satu VBox
+        VBox wrapper = new VBox();
+        wrapper.getChildren().addAll(navBar, mainLayout);
+
+        root.getChildren().add(wrapper);
         root.setStyle("-fx-background-color: #f4f4f4;");
     }
 
     @Override
     public void setEvent() {
+        // Saat tombol Menu di-klik, tampilkan context menu di bawah tombol menu
+        menuButton.setOnAction(e -> {
+            menuContext.show(menuButton, 
+                menuButton.localToScreen(0, menuButton.getHeight()).getX(),
+                menuButton.localToScreen(0, menuButton.getHeight()).getY()
+            );
+        });
+
+        // Saat offered item di klik, saat ini hanya menampilkan alert "belum dibuat"
+        offeredItemMenu.setOnAction(e -> {
+            viewManager.switchPage(new OfferPage(viewManager));
+        });
+
         // Save Button Action
-        Button saveButton = (Button) ((GridPane) ((VBox) root.getChildren().get(0)).getChildren().get(1)).getChildren().get(8);
+        Button saveButton = (Button) uploadForm.getChildren().filtered(node -> node instanceof Button && ((Button) node).getText().equals("SAVE")).get(0);
         saveButton.setOnAction(e -> {
             String itemName = itemNameField.getText();
             String itemCategory = itemCategoryField.getText();
@@ -118,15 +167,14 @@ public class DashboardPage implements Page {
                 return;
             }
 
-            // Add new item to the table (you should replace this with saving to database logic)
-            String newItem = String.join(", ", itemName, itemCategory, itemSize, itemPrice); // Placeholder
+            // Add new item to the table (dummy logic)
+            String newItem = String.join(", ", itemName, itemCategory, itemSize, itemPrice);
             itemsTable.getItems().add(newItem);
 
             errorMessage.setText("Item uploaded successfully!");
         });
 
         // Edit Button Action
-        Button editButton = (Button) ((HBox) ((VBox) root.getChildren().get(0)).getChildren().get(4)).getChildren().get(0);
         editButton.setOnAction(e -> {
             String selectedItem = itemsTable.getSelectionModel().getSelectedItem();
             if (selectedItem != null) {
@@ -137,7 +185,6 @@ public class DashboardPage implements Page {
         });
 
         // Delete Button Action
-        Button deleteButton = (Button) ((HBox) ((VBox) root.getChildren().get(0)).getChildren().get(4)).getChildren().get(1);
         deleteButton.setOnAction(e -> {
             String selectedItem = itemsTable.getSelectionModel().getSelectedItem();
             if (selectedItem != null) {
@@ -146,7 +193,6 @@ public class DashboardPage implements Page {
                 confirmationAlert.setHeaderText("Are you sure you want to delete this item?");
                 confirmationAlert.showAndWait().ifPresent(response -> {
                     if (response == ButtonType.OK) {
-                        // Remove the selected item from the table (replace with delete logic)
                         itemsTable.getItems().remove(selectedItem);
                         errorMessage.setText("Item deleted successfully!");
                     }
@@ -165,7 +211,7 @@ public class DashboardPage implements Page {
         Label editTitle = new Label("Edit Item");
         editTitle.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
 
-        // Split selected item to populate fields (assuming it's a comma-separated value)
+        // Split selected item
         String[] itemDetails = selectedItem.split(", ");
         TextField editNameField = new TextField(itemDetails[0]);
         TextField editCategoryField = new TextField(itemDetails[1]);
@@ -174,7 +220,6 @@ public class DashboardPage implements Page {
 
         Button saveEditButton = new Button("SAVE");
         saveEditButton.setOnAction(event -> {
-            // Validate and update the item
             String updatedItem = String.join(", ", 
                 editNameField.getText(), 
                 editCategoryField.getText(), 
@@ -183,8 +228,7 @@ public class DashboardPage implements Page {
             );
 
             int selectedIndex = itemsTable.getSelectionModel().getSelectedIndex();
-            itemsTable.getItems().set(selectedIndex, updatedItem); // Update the item in the table
-
+            itemsTable.getItems().set(selectedIndex, updatedItem);
             errorMessage.setText("Item updated successfully!");
             editStage.close();
         });
@@ -199,6 +243,14 @@ public class DashboardPage implements Page {
 
     private void showErrorAlert(String title, String content) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.showAndWait();
+    }
+
+    private void showInfoAlert(String title, String content) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(content);

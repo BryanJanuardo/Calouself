@@ -10,6 +10,7 @@ import Models.OfferModel;
 import Models.ProductModel;
 import Models.UserModel;
 import Models.WishlistModel;
+import Views.Seller.DashboardPage;
 import javafx.application.Application;
 import javafx.stage.Stage;
 
@@ -22,8 +23,11 @@ public final class Main extends Application {
     @Override
     public void start(Stage stage) throws Exception {
     	
+    	
     	ViewManager viewManager = new ViewManager(stage);
-    	System.out.println("Hello World2");
+    	
+    	
+
 //    	UserModel user = UserModel.CheckAccountValidation("jane_seller", "12345", "+623213123", "Jalan kemanggisan").getData();
 //    	ArrayList<ProductModel> list;
 //    	System.out.println(user.getUser_id());
