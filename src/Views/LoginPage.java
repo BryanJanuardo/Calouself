@@ -22,22 +22,23 @@ public class LoginPage implements Page{
     private PasswordField passwordField;
     private Label usernameErrorLabel;
     private Label passwordErrorLabel;
-    private Label successMessageLabel;
     private Button loginButton;
 
-    public LoginPage(ViewManager viewManager) {
-        this(viewManager, ""); 
-    }
+   
 
-    public LoginPage(ViewManager viewManager, String successMessage) {
+    public LoginPage(ViewManager viewManager) {
         this.viewManager = viewManager;
         this.root = new StackPane();
-        init(successMessage);
+        init();
         setLayout();
         setEvent();
     }
 
-    public void init(String successMessage) {
+    public void init() {
+    	testBtn = new Button("test");
+		testBtn2 = new Button("test2");
+
+		
         vbox = new VBox(15); 
         vbox.setAlignment(Pos.CENTER); 
         vbox.setPadding(new Insets(30, 50, 30, 50)); 
@@ -63,11 +64,7 @@ public class LoginPage implements Page{
         passwordErrorLabel.setTextFill(Color.RED);
         passwordErrorLabel.setFont(Font.font("Arial", FontWeight.NORMAL, 18));
         passwordErrorLabel.setVisible(false);
-       
-        successMessageLabel = new Label(successMessage);
-        successMessageLabel.setStyle("-fx-text-fill: green; -fx-font-size: 16px;");
-        successMessageLabel.setVisible(!successMessage.isEmpty()); 
-     
+        
         loginButton = new Button("Login");
         loginButton.setPrefWidth(140);
         loginButton.setPrefHeight(51);
@@ -94,7 +91,7 @@ public class LoginPage implements Page{
         gridPane.setVgap(10);
         gridPane.setPadding(new Insets(20, 50, 20, 50));
 
-        
+    
         gridPane.add(usernameLabel, 0, 0);
         gridPane.add(usernameField, 1, 0);
         gridPane.add(usernameErrorLabel, 1, 1);
@@ -105,12 +102,15 @@ public class LoginPage implements Page{
         GridPane.setHalignment(loginButton, javafx.geometry.HPos.RIGHT);
 
         
-        vbox.getChildren().addAll(successMessageLabel, titleLabel, gridPane);
+        vbox.getChildren().addAll( titleLabel, gridPane, testBtn, testBtn2);
         root.getChildren().add(vbox);
     }
 
     public void setEvent() {
         loginButton.setOnAction(e -> validateInputs());
+        testBtn.setOnAction(e -> testPage());
+		testBtn2.setOnAction(e -> testPage2());
+
     }
 
     private void validateInputs() {
@@ -138,6 +138,13 @@ public class LoginPage implements Page{
             homePage();
         }
     }
+    public void testPage() {
+		viewManager.changePage(new Views.Seller.DashboardPage(viewManager).getPage());
+	}
+
+	public void testPage2() {
+		viewManager.changePage(new Views.Admin.DashboardPage(viewManager).getPage());
+	}
 
     public void homePage() {
     	viewManager.changePage(new DashboardPage(viewManager).getPage());
@@ -148,41 +155,8 @@ public class LoginPage implements Page{
         return root;
     }
 
-	@Override
-	public void init() {
-		vbox = new VBox(10);
-		registerBtn = new Button("Register");
-		testBtn = new Button("test");
-		testBtn2 = new Button("test2");
+	
 
-	}
-	
-	@Override
-	public void setLayout() {
-		vbox.getChildren().addAll(registerBtn, testBtn, testBtn2);
-		
-		root.getChildren().add(vbox);
-		
-		
-	}
-	
-	@Override
-	public void setEvent() {
-		registerBtn.setOnAction(e -> registerPage());
-		testBtn.setOnAction(e -> testPage());
-		testBtn2.setOnAction(e -> testPage2());
-		
-	}
-	
-	public void registerPage() {
-		viewManager.changePage(new RegisterPage(viewManager).getPage());
-	}
-	public void testPage() {
-		viewManager.changePage(new Views.Seller.DashboardPage(viewManager).getPage());
-	}
 
-	public void testPage2() {
-		viewManager.changePage(new Views.Admin.DashboardPage(viewManager).getPage());
-	}
 
 }

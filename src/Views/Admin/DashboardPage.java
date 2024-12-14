@@ -1,6 +1,7 @@
 package Views.Admin;
 
 import Managers.ViewManager;
+import Views.LoginPage;
 import Views.Page;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.geometry.Insets;
@@ -18,6 +19,7 @@ public class DashboardPage implements Page {
     private Button menuButton;
     private ContextMenu menuContext;
     private MenuItem homeMenu;
+    private MenuItem signOutMenu;
 
     // Main layout
     private VBox mainLayout;
@@ -50,7 +52,9 @@ public class DashboardPage implements Page {
 
         menuContext = new ContextMenu();
         homeMenu = new MenuItem("Home");
-        menuContext.getItems().add(homeMenu);
+        signOutMenu = new MenuItem("Sign Out"); // Menu untuk sign out
+
+        menuContext.getItems().addAll(homeMenu, signOutMenu);
 
         mainLayout = new VBox(10);
         mainLayout.setPadding(new Insets(10));
@@ -139,6 +143,11 @@ public class DashboardPage implements Page {
         homeMenu.setOnAction(e -> {
             // Bila butuh navigasi ke halaman lain:
             // viewManager.switchPage(new DashboardPage(viewManager));
+        });
+        
+        signOutMenu.setOnAction(e -> {
+            viewManager.logout();
+            viewManager.changePage(new LoginPage(viewManager).getPage());
         });
     }
 
