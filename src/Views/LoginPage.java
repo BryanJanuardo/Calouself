@@ -5,7 +5,6 @@ import Controllers.UserController;
 import Managers.ViewManager;
 import Models.UserModel;
 import Utils.Response;
-import Views.Customer.DashboardPage;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
@@ -24,8 +23,6 @@ public class LoginPage implements Page{
     private Label errorLabel;
     private Button loginButton;
     private Button linkRegister;
-
-   
 
     public LoginPage(ViewManager viewManager) {
         this.viewManager = viewManager;
@@ -61,7 +58,7 @@ public class LoginPage implements Page{
         
         loginButton = new Button("Login");
         loginButton.setPrefWidth(140);
-        loginButton.setPrefHeight(51);
+        loginButton.setPrefHeight(40);
         loginButton.setStyle("-fx-font-size: 20px; -fx-padding: 10px 20px; -fx-border-width: 2px;");
     }
 
@@ -93,7 +90,7 @@ public class LoginPage implements Page{
         gridPane.add(errorLabel, 1, 2);
         gridPane.add(linkRegister, 1, 3);
         gridPane.add(loginButton, 1, 4);
-        GridPane.setHalignment(loginButton, javafx.geometry.HPos.RIGHT);
+        GridPane.setHalignment(loginButton, javafx.geometry.HPos.LEFT);
 
         
         vbox.getChildren().addAll(titleLabel, gridPane);

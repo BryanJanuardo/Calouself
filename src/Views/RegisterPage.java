@@ -79,7 +79,7 @@ public class RegisterPage implements Page {
         sellerRadioButton.setUserData("seller");
 
         regisButton = new Button("Register");
-        regisButton.setPrefWidth(80);
+        regisButton.setPrefWidth(140);
         regisButton.setPrefHeight(40);
         regisButton.setStyle("-fx-font-size: 20px; -fx-padding: 10px 20px; -fx-border-width: 2px;");
         

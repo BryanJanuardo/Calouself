@@ -121,11 +121,13 @@ public class ItemController {
 	}
 	
 	public static Response<ArrayList<ProductModel>> BrowseItem(String Item_name){
-		return ItemModel.BrowseItem(Item_name);
+		Response<ArrayList<ProductModel>> res = ItemModel.BrowseItem(Item_name);
+		return res;
 	}
 	
 	public static Response<ArrayList<ProductModel>> ViewItem(){
-		return ItemModel.ViewItem();
+		Response<ArrayList<ProductModel>> res = ItemModel.ViewItem();
+		return res;
 	}
 	
 	public static Response<ArrayList<ItemModel>> ViewSellerItem(String Seller_id){
@@ -160,8 +162,23 @@ public class ItemController {
 		return resResult;
 	}
 	
-	public static Response<OfferModel> OfferPrice(String Item_id, String Buyer_id, String Item_price) {
-		return ItemModel.OfferPrice(Item_id, Buyer_id, new BigDecimal(Item_price));
+	public static Response<OfferModel> OfferPrice(String Product_id, String Buyer_id, String Item_price) {
+		Response<OfferModel> res = new Response<OfferModel>();
+		try {
+			if(new BigDecimal(Item_price).compareTo(BigDecimal.ZERO) == 0) {
+				res.setMessages("Item price cannot be 0!");
+				res.setIsSuccess(false);
+				res.setData(null);
+				return res;
+			} 
+			
+		} catch (Exception e) {
+			res.setMessages("Item price must be in number!");
+			res.setIsSuccess(false);
+			res.setData(null);
+			return res;
+		}
+		return ItemModel.OfferPrice(Product_id, Buyer_id, new BigDecimal(Item_price));
 	}
 	
 	public static Response<OfferModel> AcceptOffer(String Offer_id) {
@@ -200,6 +217,10 @@ public class ItemController {
 		return ItemModel.ViewAcceptedItem();
 	}
 	
+	public static Response<ArrayList<OfferModel>> ViewOfferedItem(String Seller_id){
+		return ItemModel.ViewOfferedItem(Seller_id);
+	}
+
 	public static Response<ArrayList<OfferModel>> ViewOfferItem(String Seller_id){
 		return ItemModel.ViewOfferItem(Seller_id);
 	}

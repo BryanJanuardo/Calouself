@@ -1,24 +1,31 @@
 package Views.Customer;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+
+import Controllers.ItemController;
 import Managers.ViewManager;
-import Utils.ConnectionDB;
+import Models.OfferModel;
+import Models.ProductModel;
+import Models.TransactionModel;
+import Models.WishlistModel;
+import Utils.Response;
 import Views.LoginPage;
 import Views.Page;
-import Views.Customer.WishlistPage.Item;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import java.util.stream.Collectors;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
+import javafx.stage.Stage;
 
 public class DashboardPage implements Page {
     private ViewManager viewManager;
@@ -27,6 +34,7 @@ public class DashboardPage implements Page {
     private HBox navBar;
     private Button menuButton;
     private ContextMenu menuContext;
+    private MenuItem offerMenu;
     private MenuItem wishlistMenu;
     private MenuItem purchaseHistoryMenu;
     private MenuItem signOutMenu;
@@ -34,9 +42,10 @@ public class DashboardPage implements Page {
     private HBox searchBar;
     private TextField searchField;
     private Button searchButton;
+    private Button resetButton;
 
     private VBox mainLayout;
-    private TableView<Item> table;
+    private TableView<ProductModel> itemTable;
 
     public DashboardPage(ViewManager viewManager) {
         this.viewManager = viewManager;
@@ -44,6 +53,10 @@ public class DashboardPage implements Page {
         init();
         setLayout();
         setEvent();
+    }
+    
+    public void offer() {
+    	viewManager.changePage(new OfferPage(viewManager).getPage());
     }
 
     public void wishlist() {
@@ -53,9 +66,6 @@ public class DashboardPage implements Page {
     public void purchaseHistory() {
         viewManager.changePage(new HistoryPage(viewManager).getPage());
     }
-    
-    
-    
 
     @SuppressWarnings("unchecked")
 	@Override
@@ -64,23 +74,18 @@ public class DashboardPage implements Page {
         navBar.setPadding(new Insets(10));
         navBar.setSpacing(10);
         navBar.setStyle("-fx-background-color: #333;");
-        
-
-
 
         menuButton = new Button("Menu");
         menuButton.setStyle("-fx-text-fill: white; -fx-background-color: #555;");
 
-
-
         menuContext = new ContextMenu();
         wishlistMenu = new MenuItem("Wishlist");
         purchaseHistoryMenu = new MenuItem("Purchase History");
+        offerMenu = new MenuItem("Offer");
         signOutMenu = new MenuItem("Sign Out");
-        menuContext.getItems().addAll(wishlistMenu, purchaseHistoryMenu, signOutMenu);
+        menuContext.getItems().addAll(wishlistMenu, purchaseHistoryMenu, offerMenu, signOutMenu);
 
         HBox spacer = new HBox();
-//        spacer.setHgrow(spacer, Priority.ALWAYS);
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         navBar.getChildren().addAll(menuButton, spacer);
@@ -92,31 +97,48 @@ public class DashboardPage implements Page {
         searchField.setPromptText("Search items...");
         searchField.setPrefWidth(300);
         searchButton = new Button("Search");
-        searchBar.getChildren().addAll(searchField, searchButton);
+        resetButton = new Button("Reset");
+        searchBar.getChildren().addAll(searchField, searchButton, resetButton);
 
         mainLayout = new VBox();
         mainLayout.setSpacing(10);
         mainLayout.setPadding(new Insets(10));
 
-        table = new TableView<>();
-        table.setPlaceholder(new Label("No content in table"));
+        itemTable = new TableView<>();
+        itemTable.setPlaceholder(new Label("No content in table"));
         
-        TableColumn<Item, Integer> idColumn = new TableColumn<>("ID");
-        idColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
+        TableColumn<ProductModel, String> idColumn = new TableColumn<>("ID");
+        TableColumn<ProductModel, String> nameColumn = new TableColumn<>("Item Name");
+        TableColumn<ProductModel, String> categoryColumn = new TableColumn<>("Item Category");
+        TableColumn<ProductModel, String> sizeColumn = new TableColumn<>("Item Size");
+        TableColumn<ProductModel, BigDecimal> priceColumn = new TableColumn<>("Item Price");
+        TableColumn<ProductModel, Void> actionColumn = new TableColumn<>("Action");
+        
+        idColumn.setCellValueFactory(new PropertyValueFactory<>("product_id"));
+        nameColumn.setCellValueFactory(cellData -> {
+            ProductModel product = cellData.getValue();
+            String itemName = product.item().getItem_name();
+            return new SimpleStringProperty(itemName);
+        });
 
-        TableColumn<Item, String> nameColumn = new TableColumn<>("Item Name");
-        nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
-
-        TableColumn<Item, String> categoryColumn = new TableColumn<>("Item Category");
-        categoryColumn.setCellValueFactory(new PropertyValueFactory<>("category"));
-
-        TableColumn<Item, String> sizeColumn = new TableColumn<>("Item Size");
-        sizeColumn.setCellValueFactory(new PropertyValueFactory<>("size"));
-
-        TableColumn<Item, Double> priceColumn = new TableColumn<>("Item Price");
-        priceColumn.setCellValueFactory(new PropertyValueFactory<>("price"));
-
-        TableColumn<Item, Void> actionColumn = new TableColumn<>("Action");
+        categoryColumn.setCellValueFactory(cellData -> {
+        	ProductModel product = cellData.getValue();
+        	String category = product.item().getItem_category();
+        	return new SimpleStringProperty(category);
+        });
+        
+        sizeColumn.setCellValueFactory(cellData -> {
+        	ProductModel product = cellData.getValue();
+            String size = product.item().getItem_size();
+            return new SimpleStringProperty(size);
+        });
+        
+        priceColumn.setCellValueFactory(cellData -> {
+        	ProductModel product = cellData.getValue();
+            BigDecimal itemPrice = product.item().getItem_price();
+            return new SimpleObjectProperty<>(itemPrice);
+        });
+        
         actionColumn.setCellFactory(col -> new TableCell<>() {
             private final Button purchaseButton = new Button("Purchase");
             private final Button offerButton = new Button("Offer");
@@ -124,76 +146,29 @@ public class DashboardPage implements Page {
 
             {
                 purchaseButton.setOnAction(event -> {
-                    Item item = getTableView().getItems().get(getIndex());
-                    showConfirmationDialog("Purchase Confirmation", 
-                        "Are you sure you want to purchase " + item.getName() + "?", 
-                        () -> System.out.println("Purchased: " + item.getName()));
+                    ProductModel product = getTableView().getItems().get(getIndex());
+                    String itemName = product.item().getItem_name();
+                    showConfirmationPurchase("Purchase Confirmation", 
+                        "Are you sure you want to purchase " + itemName + "?", 
+                        product);
                 });
 
                 offerButton.setOnAction(event -> {
-                    Item item = getTableView().getItems().get(getIndex());
+                    ProductModel product = getTableView().getItems().get(getIndex());
+                    String itemName = product.item().getItem_name();
                     showOfferInputDialog("Offer Input", 
-                        "Enter your offer price for " + item.getName() + ":", 
-                        offer -> System.out.println("Offer for " + item.getName() + ": " + offer));
+                        "Enter your offer price for " + itemName + ":", 
+                        product);
                 });
 
                 wishlistButton.setOnAction(event -> {
-                    Item item = getTableView().getItems().get(getIndex());
-                    showConfirmationDialog("Wishlist Confirmation", 
-                        "Do you want to add " + item.getName() + " to your wishlist?", 
-                        () -> System.out.println("Added to wishlist: " + item.getName()));
+                    ProductModel product = getTableView().getItems().get(getIndex());
+                    String itemName = product.item().getItem_name();
+                    showConfirmationWishlist("Wishlist Confirmation", 
+                        "Do you want to add " + itemName + " to your wishlist?", 
+                        product);
                 });
             }
-            
-            
-            private void showConfirmationDialog(String title, String content, Runnable onConfirm) {
-                Alert confirmationDialog = new Alert(Alert.AlertType.CONFIRMATION);
-                confirmationDialog.setTitle(title);
-                confirmationDialog.setHeaderText(null);
-                confirmationDialog.setContentText(content);
-
-                confirmationDialog.showAndWait().ifPresent(response -> {
-                    if (response == ButtonType.OK) {
-                        onConfirm.run();
-                    }
-                });
-            }
-
-            private void showOfferInputDialog(String title, String content, java.util.function.Consumer<Double> onOffer) {
-                // Create dialog
-                Dialog<Double> offerDialog = new Dialog<>();
-                offerDialog.setTitle(title);
-
-                ButtonType submitButtonType = new ButtonType("Submit", ButtonBar.ButtonData.OK_DONE);
-                offerDialog.getDialogPane().getButtonTypes().addAll(submitButtonType, ButtonType.CANCEL);
-
-                TextField offerInput = new TextField();
-                offerInput.setPromptText("Enter your offer price");
-
-                VBox layout = new VBox(10);
-                layout.setPadding(new Insets(10));
-                layout.getChildren().addAll(new Label(content), offerInput);
-
-                offerDialog.getDialogPane().setContent(layout);
-
-                offerDialog.setResultConverter(dialogButton -> {
-                    if (dialogButton == submitButtonType) {
-                        try {
-                            return Double.parseDouble(offerInput.getText());
-                        } catch (NumberFormatException e) {
-                            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
-                            errorAlert.setHeaderText(null);
-                            errorAlert.setContentText("Please enter a valid number.");
-                            errorAlert.showAndWait();
-                            return null;
-                        }
-                    }
-                    return null;
-                });
-
-                offerDialog.showAndWait().ifPresent(onOffer);
-            }
-
 
             @Override
             protected void updateItem(Void item, boolean empty) {
@@ -208,16 +183,10 @@ public class DashboardPage implements Page {
         });
 
 
-        table.getColumns().addAll(idColumn, nameColumn, categoryColumn, sizeColumn, priceColumn, actionColumn);
-
-        
-        List<Item> itemsFromDB = generateDummyItems();
-        table.getItems().addAll(itemsFromDB);
-
-       
-        table.setPrefHeight(400);
-
-        mainLayout.getChildren().addAll(table);
+        itemTable.getColumns().addAll(idColumn, nameColumn, categoryColumn, sizeColumn, priceColumn, actionColumn);
+        itemTable.setPrefHeight(400);
+        refreshTable();
+        mainLayout.getChildren().addAll(itemTable);
         
     }
 
@@ -242,87 +211,119 @@ public class DashboardPage implements Page {
         wishlistMenu.setOnAction(e -> wishlist());
 
         purchaseHistoryMenu.setOnAction(e -> purchaseHistory());
+        
+        offerMenu.setOnAction(e -> offer());
 
         signOutMenu.setOnAction(e -> {
-            System.out.println("Sign out");
+        	viewManager.logout();
             viewManager.changePage(new LoginPage(viewManager).getPage());
         });
 
         searchButton.setOnAction(e -> {
             String query = searchField.getText().toLowerCase();
-            table.getItems().clear();
-            generateDummyItems().stream()
-                    .filter(item -> item.getName().toLowerCase().contains(query)
-                            || item.getCategory().toLowerCase().contains(query)
-                            || item.getSize().toLowerCase().contains(query))
-                    .forEach(filteredItem -> table.getItems().add(filteredItem));
+            searchItem(query);
+        });
+        
+        resetButton.setOnAction(e -> {
+        	refreshTable();
+        	searchField.setText("");
         });
     }
+    
+    private void showConfirmationPurchase(String title, String content, ProductModel product) {
+        Alert confirmationDialog = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmationDialog.setTitle(title);
+        confirmationDialog.setHeaderText(null);
+        confirmationDialog.setContentText(content);
+
+        confirmationDialog.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+            	Response<TransactionModel> res = TransactionModel.PurchaseItem(viewManager.getUser().getUser_id(), product.getProduct_id());
+            	
+            	if(res.getIsSuccess()) {
+            		showInfoAlert("Info", res.getMessages());
+            	} else {                    		
+            		showInfoAlert("Failed", res.getMessages());
+            	}
+            }
+        });
+    }
+    
+    private void showConfirmationWishlist(String title, String content, ProductModel product) {
+        Alert confirmationDialog = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmationDialog.setTitle(title);
+        confirmationDialog.setHeaderText(null);
+        confirmationDialog.setContentText(content);
+
+        confirmationDialog.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+            	Response<WishlistModel> res = WishlistModel.AddWishlist(product.getProduct_id(), viewManager.getUser().getUser_id());
+            	
+            	if(res.getIsSuccess()) {
+            		showInfoAlert("Info", res.getMessages());
+            	} else {                    		
+            		showInfoAlert("Failed", res.getMessages());
+            	}
+            }
+        });
+    }
+    
+    private void showInfoAlert(String title, String content) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.showAndWait();
+    }
+
+    private void showOfferInputDialog(String title, String content, ProductModel product) {
+    	Stage offerStage = new Stage();
+        VBox offerLayout = new VBox(10);
+        offerLayout.setPadding(new Insets(10));
+        
+        Label offerTitleLabel = new Label(title);
+    	TextArea offerField = new TextArea();
+    	offerField.setPromptText("Enter offer value...");
+    	
+    	Label errorLabel = new Label("");
+    	errorLabel.setStyle("-fx-text-fill: red;");
+        
+    	Button submitButton = new Button("SUBMIT");
+    	
+    	submitButton.setOnAction(e -> {
+            String offer = offerField.getText().trim();
+            Response<OfferModel> res = ItemController.OfferPrice(product.getProduct_id(), 
+            		viewManager.getUser().getUser_id(), offer);
+            
+            if(res.getIsSuccess()) {            	
+            	showInfoAlert("Info", res.getMessages() + "Product Offered: " + offer);
+            	offerStage.close();
+            }else {
+            	errorLabel.setText(res.getMessages());            	
+            }
+        });
+    	
+    	offerLayout.getChildren().addAll(offerTitleLabel, offerField, errorLabel, submitButton);
+    	Scene offerScene = new Scene(offerLayout, 300, 200);
+    	offerStage.setScene(offerScene);
+    	offerStage.setTitle("Offer Product");
+    	offerStage.show();
+    }
+    
+    private void searchItem(String query) {
+    	ArrayList<ProductModel> products = ItemController.BrowseItem(query).getData();
+    	ObservableList<ProductModel> observableItems = FXCollections.observableArrayList(products);
+    	itemTable.setItems(observableItems);
+    }
+    
+    private void refreshTable() {
+    	ArrayList<ProductModel> products = ItemController.ViewItem().getData();
+    	ObservableList<ProductModel> observableItems = FXCollections.observableArrayList(products);
+    	itemTable.setItems(observableItems);
+    }	
 
     @Override
     public StackPane getPage() {
         return root;
     }
-
-    public static class Item {
-        private final String name;
-        private final String category;
-        private final String size;
-        private final double price;
-
-        public Item(String name, String category, String size, double price) {
-            this.name = name;
-            this.category = category;
-            this.size = size;
-            this.price = price;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public String getCategory() {
-            return category;
-        }
-
-        public String getSize() {
-            return size;
-        }
-
-        public double getPrice() {
-            return price;
-        }
-    }
-
-    private List<Item> generateDummyItems() {
-        List<Item> items = new ArrayList<>();
-        try {
-            ConnectionDB db = ConnectionDB.getInstance();
-            PreparedStatement ps = db.prepareStatement("SELECT * FROM items WHERE item_status = 'Approved'");
-            ResultSet rs = db.execQuery(ps);
-
-            while (rs.next()) {
-                String name = rs.getString("Item_name");
-                String category = rs.getString("Item_category");
-                String size = rs.getString("Item_size");
-                double price = rs.getDouble("Item_price");
-                items.add(new Item(name, category, size, price));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return items;
-    }
-
-    
-   
-    
-    
-
-
 }
-
-
-
-
-

@@ -371,7 +371,7 @@ public class ItemModel extends Model{
 			
 			if(buyerOffer == null) {
 				buyerOffer = OfferFactory.createOffer(IdGeneratorHelper.generateNewId(OfferFactory.createOffer().latest().getOffer_id(), "OF")
-						, Product_id, Buyer_id, Item_price, "Pending", null);
+						, Product_id, Buyer_id, Item_price, "Offered", null);
 				
 				buyerOffer.insert();				
 			}else {
@@ -536,6 +536,25 @@ public class ItemModel extends Model{
 			res.setMessages("Success: Retrived All Approved items!");
 			res.setIsSuccess(true);
 			res.setData(listProduct);
+			return res;
+		} catch (Exception e) {
+	        e.printStackTrace();
+	        res.setMessages("Error: " + e.getMessage() + "!");
+	        res.setIsSuccess(false);
+	        res.setData(null);
+	        return res;
+	    }
+	}
+	
+	public static Response<ArrayList<OfferModel>> ViewOfferedItem(String User_id){
+		Response<ArrayList<OfferModel>> res = new Response<ArrayList<OfferModel>>();
+		
+		try {
+			ArrayList<OfferModel> listOffer = OfferFactory.createOffer().where("Buyer_id", "=", User_id);
+			
+			res.setMessages("Success: Retrived All Offered items!");
+			res.setIsSuccess(true);
+			res.setData(listOffer);
 			return res;
 		} catch (Exception e) {
 	        e.printStackTrace();

@@ -1,15 +1,20 @@
 package Views.Customer;
 
 import Managers.ViewManager;
+import Models.WishlistModel;
+import Utils.Response;
 import Views.LoginPage;
 import Views.Page;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.*;
-
+import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.List;
 
 public class WishlistPage implements Page {
     private ViewManager viewManager;
@@ -19,11 +24,12 @@ public class WishlistPage implements Page {
     private Button menuButton;
     private ContextMenu menuContext;
     private MenuItem homeMenu;
+    private MenuItem offerMenu;
     private MenuItem transactionHistoryMenu;
     private MenuItem signOutMenu;
 
     private VBox mainLayout;
-    private TableView<Item> table;
+    private TableView<WishlistModel> wishlistTable;
 
     public WishlistPage(ViewManager viewManager) {
         this.viewManager = viewManager;
@@ -45,14 +51,14 @@ public class WishlistPage implements Page {
         menuButton.setStyle("-fx-text-fill: white; -fx-background-color: #555;");
 
         menuContext = new ContextMenu();
-        homeMenu = new MenuItem("Back to Homepage");
-        transactionHistoryMenu = new MenuItem("Transaction History");
+        homeMenu = new MenuItem("Homepage");
+        transactionHistoryMenu = new MenuItem("Purchase History");
+        offerMenu = new MenuItem("Offer");
         signOutMenu = new MenuItem("Sign Out");
-        menuContext.getItems().addAll(homeMenu, transactionHistoryMenu, signOutMenu);
+        menuContext.getItems().addAll(homeMenu, transactionHistoryMenu, offerMenu, signOutMenu);
 
         HBox spacer = new HBox();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-//        spacer.setHgrow(spacer, Priority.ALWAYS);
 
         navBar.getChildren().addAll(menuButton, spacer);
 
@@ -60,34 +66,51 @@ public class WishlistPage implements Page {
         mainLayout.setSpacing(10);
         mainLayout.setPadding(new Insets(10));
 
-        table = new TableView<>();
-        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY); 
+        wishlistTable = new TableView<WishlistModel>();
+        wishlistTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY); 
 
-        TableColumn<Item, Integer> idColumn = new TableColumn<>("ID");
-        idColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
-
-        TableColumn<Item, String> nameColumn = new TableColumn<>("Item Name");
-        nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
-
-        TableColumn<Item, String> categoryColumn = new TableColumn<>("Item Category");
-        categoryColumn.setCellValueFactory(new PropertyValueFactory<>("category"));
-
-        TableColumn<Item, String> sizeColumn = new TableColumn<>("Item Size");
-        sizeColumn.setCellValueFactory(new PropertyValueFactory<>("size"));
-
-        TableColumn<Item, Double> priceColumn = new TableColumn<>("Item Price");
-        priceColumn.setCellValueFactory(new PropertyValueFactory<>("price"));
-
-        TableColumn<Item, Void> actionColumn = new TableColumn<>("Action");
+        TableColumn<WishlistModel, Integer> idColumn = new TableColumn<>("ID");
+        TableColumn<WishlistModel, String> nameColumn = new TableColumn<>("Item Name");
+        TableColumn<WishlistModel, String> categoryColumn = new TableColumn<>("Item Category");
+        TableColumn<WishlistModel, String> sizeColumn = new TableColumn<>("Item Size");
+        TableColumn<WishlistModel, BigDecimal> priceColumn = new TableColumn<>("Item Price");
+        TableColumn<WishlistModel, Void> actionColumn = new TableColumn<>("Action");
+        
+        idColumn.setCellValueFactory(new PropertyValueFactory<>("wishlist_id"));
+        
+        nameColumn.setCellValueFactory(cellData -> {
+        	WishlistModel wishlist = cellData.getValue();
+            String itemName = wishlist.product().item().getItem_name();
+            return new SimpleStringProperty(itemName);
+        });
+        
+        categoryColumn.setCellValueFactory(cellData -> {
+        	WishlistModel wishlist = cellData.getValue();
+            String itemCategory = wishlist.product().item().getItem_category();
+            return new SimpleStringProperty(itemCategory);
+        });
+        
+        sizeColumn.setCellValueFactory(cellData -> {
+        	WishlistModel wishlist = cellData.getValue();
+            String itemSize = wishlist.product().item().getItem_size();
+            return new SimpleStringProperty(itemSize);
+        });
+        
+        priceColumn.setCellValueFactory(cellData -> {
+        	WishlistModel wishlist = cellData.getValue();
+            BigDecimal itemPrice = wishlist.product().item().getItem_price();
+            return new SimpleObjectProperty<>(itemPrice);
+        });
+        
         actionColumn.setCellFactory(col -> new TableCell<>() {
             private final Button removeButton = new Button("Remove");
 
             {
                 removeButton.setOnAction(event -> {
-                    Item item = getTableView().getItems().get(getIndex());
-                    showConfirmationDialog("Remove Confirmation",
-                            "Are you sure you want to remove " + item.getName() + " from the wishlist?",
-                            () -> table.getItems().remove(item));
+                    WishlistModel wishlist = getTableView().getItems().get(getIndex());
+                    showConfirmationWishlist("Remove Confirmation",
+                            "Are you sure you want to remove " + wishlist.product().item().getItem_name() + " from the wishlist?",
+                            wishlist);
                 });
             }
 
@@ -102,15 +125,46 @@ public class WishlistPage implements Page {
             }
         });
 
-        table.getColumns().addAll(idColumn, nameColumn, categoryColumn, sizeColumn, priceColumn, actionColumn);
-
-        List<Item> dummyItems = generateDummyItems();
-        table.getItems().addAll(dummyItems);
-
-        table.setPrefHeight(400);
-
-        mainLayout.getChildren().addAll(table);
+        wishlistTable.getColumns().addAll(idColumn, nameColumn, categoryColumn, sizeColumn, priceColumn, actionColumn);
+        wishlistTable.setPrefHeight(400);
+        refreshTable();
+        mainLayout.getChildren().addAll(wishlistTable);
     }
+    
+    private void refreshTable() {
+    	ArrayList<WishlistModel> wishlists = WishlistModel.ViewWishlist(viewManager.getUser().getUser_id()).getData();
+    	ObservableList<WishlistModel> observableItems = FXCollections.observableArrayList(wishlists);
+    	wishlistTable.setItems(observableItems);
+    }	
+    
+    private void showConfirmationWishlist(String title, String content, WishlistModel wishlist) {
+        Alert confirmationDialog = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmationDialog.setTitle(title);
+        confirmationDialog.setHeaderText(null);
+        confirmationDialog.setContentText(content);
+
+        confirmationDialog.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+            	Response<WishlistModel> res = WishlistModel.RemoveWishlist(wishlist.getWishlist_id());
+            	refreshTable();
+            	
+            	if(res.getIsSuccess()) {
+            		showInfoAlert("Info", res.getMessages());
+            	} else {                    		
+            		showInfoAlert("Failed", res.getMessages());
+            	}
+            }
+        });
+    }
+    
+    private void showInfoAlert(String title, String content) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.showAndWait();
+    }
+
 
     @Override
     public void setLayout() {
@@ -138,6 +192,10 @@ public class WishlistPage implements Page {
             viewManager.changePage(new HistoryPage(viewManager).getPage());
         });
 
+        offerMenu.setOnAction(e -> {
+        	viewManager.changePage(new OfferPage(viewManager).getPage());
+        });
+        
         signOutMenu.setOnAction(e -> {
             System.out.println("Sign out");
             viewManager.changePage(new LoginPage(viewManager).getPage());
@@ -147,62 +205,5 @@ public class WishlistPage implements Page {
     @Override
     public StackPane getPage() {
         return root;
-    }
-
-    private void showConfirmationDialog(String title, String content, Runnable onConfirm) {
-        Alert confirmationDialog = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmationDialog.setTitle(title);
-        confirmationDialog.setHeaderText(null);
-        confirmationDialog.setContentText(content);
-
-        confirmationDialog.showAndWait().ifPresent(response -> {
-            if (response == ButtonType.OK) {
-                onConfirm.run();
-            }
-        });
-    }
-
-    public static class Item {
-        private final int id;
-        private final String name;
-        private final String category;
-        private final String size;
-        private final double price;
-
-        public Item(int id, String name, String category, String size, double price) {
-            this.id = id;
-            this.name = name;
-            this.category = category;
-            this.size = size;
-            this.price = price;
-        }
-
-        public int getId() {
-            return id;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public String getCategory() {
-            return category;
-        }
-
-        public String getSize() {
-            return size;
-        }
-
-        public double getPrice() {
-            return price;
-        }
-    }
-
-    private List<Item> generateDummyItems() {
-        List<Item> items = new ArrayList<>();
-        for (int i = 1; i <= 10; i++) {
-            items.add(new Item(i, "Wishlist Item " + i, "Category " + ((i % 3) + 1), "Size " + ((i % 5) + 1), 50.0 * i));
-        }
-        return items;
     }
 }
