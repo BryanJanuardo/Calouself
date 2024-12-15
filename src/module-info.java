@@ -9,6 +9,7 @@ module OOAD_LAB_PROJECTAKHIR {
     requires javafx.graphics;
     requires javafx.base;
     requires javafx.controls;
+    opens Views.Customer to javafx.base;
 
     opens Main;
     opens Controllers;
