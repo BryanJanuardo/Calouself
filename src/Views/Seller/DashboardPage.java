@@ -1,12 +1,21 @@
 package Views.Seller;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+
+import Controllers.ItemController;
 import Managers.ViewManager;
+import Models.ItemModel;
+import Models.ProductModel;
 import Views.LoginPage;
 import Views.Page;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
@@ -27,7 +36,7 @@ public class DashboardPage implements Page {
 
     // UI Components (untuk upload item)
     private TextField itemNameField, itemCategoryField, itemSizeField, itemPriceField;
-    private TableView<String> itemsTable;
+    private TableView<ItemModel> itemsTable;
     private Label errorMessage;
 
     // Komponen untuk upload form & tabel
@@ -57,20 +66,29 @@ public class DashboardPage implements Page {
         
 
         // Initialize table
-        itemsTable = new TableView<>();
-        TableColumn<String, String> idColumn = new TableColumn<>("ID");
-        TableColumn<String, String> nameColumn = new TableColumn<>("Item Name");
-        TableColumn<String, String> categoryColumn = new TableColumn<>("Item Category");
-        TableColumn<String, String> sizeColumn = new TableColumn<>("Item Size");
-        TableColumn<String, String> priceColumn = new TableColumn<>("Item Price");
+        itemsTable = new TableView<ItemModel>();
+        TableColumn<ItemModel, String> idColumn = new TableColumn<>("ID");
+        TableColumn<ItemModel, String> nameColumn = new TableColumn<>("Item Name");
+        TableColumn<ItemModel, String> categoryColumn = new TableColumn<>("Item Category");
+        TableColumn<ItemModel, String> sizeColumn = new TableColumn<>("Item Size");
+        TableColumn<ItemModel, BigDecimal> priceColumn = new TableColumn<>("Item Price");
+        TableColumn<ItemModel, String> statusColumn = new TableColumn<>("Item Status");
+        TableColumn<ItemModel, String> reasonColumn = new TableColumn<>("Reason");
+        
+        idColumn.setCellValueFactory(new PropertyValueFactory<>("item_id"));
+        nameColumn.setCellValueFactory(new PropertyValueFactory<>("item_name"));
+        categoryColumn.setCellValueFactory(new PropertyValueFactory<>("item_category"));
+        sizeColumn.setCellValueFactory(new PropertyValueFactory<>("item_size"));
+        priceColumn.setCellValueFactory(new PropertyValueFactory<>("item_price"));
+        statusColumn.setCellValueFactory(new PropertyValueFactory<>("item_status"));
+        reasonColumn.setCellValueFactory(new PropertyValueFactory<>("reason"));
 
-        itemsTable.getColumns().addAll(idColumn, nameColumn, categoryColumn, sizeColumn, priceColumn);
-
-        // Initialize error message
+        itemsTable.getColumns().addAll(idColumn, nameColumn, categoryColumn, sizeColumn, priceColumn, statusColumn, reasonColumn);
+        refreshTable();
+        
         errorMessage = new Label();
         errorMessage.setStyle("-fx-text-fill: red;");
 
-        // Buat komponen upload form
         titleLabel = new Label("Upload Item");
         titleLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
 
@@ -178,16 +196,13 @@ public class DashboardPage implements Page {
                 return;
             }
 
-            // Add new item to the table (dummy logic)
-            String newItem = String.join(", ", itemName, itemCategory, itemSize, itemPrice);
-            itemsTable.getItems().add(newItem);
 
             errorMessage.setText("Item uploaded successfully!");
         });
 
         // Edit Button Action
         editButton.setOnAction(e -> {
-            String selectedItem = itemsTable.getSelectionModel().getSelectedItem();
+            ItemModel selectedItem = itemsTable.getSelectionModel().getSelectedItem();
             if (selectedItem != null) {
                 openEditModal(selectedItem);
             } else {
@@ -197,7 +212,7 @@ public class DashboardPage implements Page {
 
         // Delete Button Action
         deleteButton.setOnAction(e -> {
-            String selectedItem = itemsTable.getSelectionModel().getSelectedItem();
+            ItemModel selectedItem = itemsTable.getSelectionModel().getSelectedItem();
             if (selectedItem != null) {
                 Alert confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION);
                 confirmationAlert.setTitle("Confirmation");
@@ -213,8 +228,14 @@ public class DashboardPage implements Page {
             }
         });
     }
-
-    private void openEditModal(String selectedItem) {
+    
+    private void refreshTable() {
+    	ArrayList<ItemModel> products = ItemController.ViewSellerItem(viewManager.getUser().getUser_id());
+    	ObservableList<ItemModel> observableItems = FXCollections.observableArrayList(products);
+    	itemsTable.setItems(observableItems);
+    }
+    
+    private void openEditModal(ItemModel selectedItem) {
         Stage editStage = new Stage();
         VBox editLayout = new VBox(10);
         editLayout.setPadding(new Insets(10));
@@ -222,12 +243,10 @@ public class DashboardPage implements Page {
         Label editTitle = new Label("Edit Item");
         editTitle.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
 
-        // Split selected item
-        String[] itemDetails = selectedItem.split(", ");
-        TextField editNameField = new TextField(itemDetails[0]);
-        TextField editCategoryField = new TextField(itemDetails[1]);
-        TextField editSizeField = new TextField(itemDetails[2]);
-        TextField editPriceField = new TextField(itemDetails[3]);
+        TextField editNameField = new TextField(selectedItem.getItem_name());
+        TextField editCategoryField = new TextField(selectedItem.getItem_category());
+        TextField editSizeField = new TextField(selectedItem.getItem_size());
+        TextField editPriceField = new TextField(selectedItem.getItem_price().toString());
 
         Button saveEditButton = new Button("SAVE");
         saveEditButton.setOnAction(event -> {
@@ -239,7 +258,8 @@ public class DashboardPage implements Page {
             );
 
             int selectedIndex = itemsTable.getSelectionModel().getSelectedIndex();
-            itemsTable.getItems().set(selectedIndex, updatedItem);
+//            itemsTable.getItems().set(selectedIndex, updatedItem);
+            refreshTable();
             errorMessage.setText("Item updated successfully!");
             editStage.close();
         });

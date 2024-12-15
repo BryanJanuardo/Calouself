@@ -18,8 +18,8 @@ public class ViewManager {
     private UserModel user = null;
 
     public ViewManager(Stage stage) {
-        this.stage = stage;
-        scene = new Scene(new LoginPage(this).getPage(), 600, 400);        
+    	this.stage = stage;
+        scene = new Scene(new LoginPage(this).getPage(), 900, 400);        
         stage.setScene(scene);
         stage.show();
     }

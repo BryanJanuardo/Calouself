@@ -161,6 +161,25 @@ public class ItemModel extends Model{
 	    }
 	}
 	
+	public static Response<ArrayList<ProductModel>> ViewSellerItem(String Seller_id){
+		Response<ArrayList<ProductModel>> res = new Response<ArrayList<ProductModel>>();
+		
+		try {
+			ArrayList<ProductModel> listProduct = ProductFactory.createProduct().where("Seller_id", "=", Seller_id);
+			
+			res.setMessages("Success: Retrived All Seller Items!");
+			res.setIsSuccess(true);
+			res.setData(listProduct);
+			return res;
+		} catch (Exception e) {
+	        e.printStackTrace();
+	        res.setMessages("Error: " + e.getMessage() + "!");
+	        res.setIsSuccess(false);
+	        res.setData(null);
+	        return res;
+	    }
+	}
+	
 	public static Response<OfferModel> CheckItemValidation(String Product_id, BigDecimal Item_price) {
 		Response<OfferModel> res = new Response<OfferModel>();
 		ProductModel product = ProductFactory.createProduct().find(Product_id);
@@ -407,7 +426,7 @@ public class ItemModel extends Model{
 	    }
 	}
 	
-	public static Response<OfferModel> DeclineOffer(String Offer_id) {
+	public static Response<OfferModel> DeclineOffer(String Offer_id, String Reason) {
 		Response<OfferModel> res = new Response<OfferModel>();
 		
 		try {
@@ -421,6 +440,7 @@ public class ItemModel extends Model{
 			}
 			
 			offer.setItem_offer_status("Declined");
+			offer.setReason(Reason);
 			offer.update(Offer_id);
 			
 			res.setMessages("Success: Offer Declined!");
@@ -465,7 +485,7 @@ public class ItemModel extends Model{
 	    }
 	}
 	
-	public static Response<ItemModel> DeclineItem(String Item_id) {
+	public static Response<ItemModel> DeclineItem(String Item_id, String Reason) {
 		Response<ItemModel> res = new Response<ItemModel>();
 		
 		try {
@@ -479,6 +499,7 @@ public class ItemModel extends Model{
 			}
 
 			item.setItem_status("Declined");
+			item.setReason(Reason);
 			item.update(Item_id);
 			
 			res.setMessages("Success: Item Declined!");
@@ -494,7 +515,7 @@ public class ItemModel extends Model{
 	    }
 	}
 	
-	public static Response<ArrayList<ProductModel>> ViewAcceptedItem(String Item_id){
+	public static Response<ArrayList<ProductModel>> ViewAcceptedItem(){
 		Response<ArrayList<ProductModel>> res = new Response<ArrayList<ProductModel>>();
 		
 		try {

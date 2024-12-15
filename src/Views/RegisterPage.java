@@ -1,6 +1,9 @@
 package Views;
 
+import Controllers.UserController;
 import Managers.ViewManager;
+import Models.UserModel;
+import Utils.Response;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
@@ -22,12 +25,9 @@ public class RegisterPage implements Page {
     private RadioButton sellerRadioButton;
     private ToggleGroup roleGroup;
     private Button regisButton;
+    private Button linkLogin;
 
-    private Label usernameErrorLabel;
-    private Label phoneErrorLabel;
-    private Label addressErrorLabel;
-    private Label roleErrorLabel;
-    private Label passwordErrorLabel;
+    private Label errorLabel;
 
     public RegisterPage(ViewManager viewManager) {
         this.viewManager = viewManager;
@@ -45,53 +45,28 @@ public class RegisterPage implements Page {
 
         usernameField = new TextField();
         usernameField.setPromptText("Username");
-        usernameField.setPrefWidth(200); // Ukuran disesuaikan dengan scene
+        usernameField.setPrefWidth(200);
         usernameField.setPrefHeight(30);
-        usernameField.setStyle("-fx-font-size: 14px;");
+        usernameField.setStyle("-fx-font-size: 18px;");
 
         phoneField = new TextField();
         phoneField.setPromptText("Phone");
         phoneField.setPrefWidth(200);
         phoneField.setPrefHeight(30);
-        phoneField.setStyle("-fx-font-size: 14px;");
+        phoneField.setStyle("-fx-font-size: 18px;");
 
         addressField = new TextField();
         addressField.setPromptText("Address");
         addressField.setPrefWidth(200);
         addressField.setPrefHeight(30);
-        addressField.setStyle("-fx-font-size: 14px;");
+        addressField.setStyle("-fx-font-size: 18px;");
 
         passwordField = new PasswordField();
         passwordField.setPromptText("Password");
-        passwordField.setPrefWidth(200);
-        passwordField.setPrefHeight(30);
-        passwordField.setStyle("-fx-font-size: 14px;");
+        passwordField.setPrefWidth(300);
+        passwordField.setPrefHeight(51);
+        passwordField.setStyle("-fx-font-size: 18px;");
          
-        usernameErrorLabel = new Label("username is required");
-        usernameErrorLabel.setTextFill(Color.RED);
-        usernameErrorLabel.setFont(Font.font("Arial", FontWeight.NORMAL, 14));
-        usernameErrorLabel.setVisible(false);
-    
-        phoneErrorLabel = new Label("phone is required");
-        phoneErrorLabel.setTextFill(Color.RED);
-        phoneErrorLabel.setFont(Font.font("Arial", FontWeight.NORMAL, 14));
-        phoneErrorLabel.setVisible(false);
-
-        addressErrorLabel = new Label("address is required");
-        addressErrorLabel.setTextFill(Color.RED);
-        addressErrorLabel.setFont(Font.font("Arial", FontWeight.NORMAL, 14));
-        addressErrorLabel.setVisible(false);
-       
-        roleErrorLabel = new Label("role is required");
-        roleErrorLabel.setTextFill(Color.RED);
-        roleErrorLabel.setFont(Font.font("Arial", FontWeight.NORMAL, 14));
-        roleErrorLabel.setVisible(false);
-
-        passwordErrorLabel = new Label("password is required");
-        passwordErrorLabel.setTextFill(Color.RED);
-        passwordErrorLabel.setFont(Font.font("Arial", FontWeight.NORMAL, 14));
-        passwordErrorLabel.setVisible(false);
-
         buyerRadioButton = new RadioButton("Buyer");
         buyerRadioButton.setStyle("-fx-font-size: 14px;");
         sellerRadioButton = new RadioButton("Seller");
@@ -100,11 +75,19 @@ public class RegisterPage implements Page {
         roleGroup = new ToggleGroup();
         buyerRadioButton.setToggleGroup(roleGroup);
         sellerRadioButton.setToggleGroup(roleGroup);
+        buyerRadioButton.setUserData("customer");
+        sellerRadioButton.setUserData("seller");
 
         regisButton = new Button("Register");
         regisButton.setPrefWidth(80);
         regisButton.setPrefHeight(40);
-        regisButton.setStyle("-fx-font-size: 14px;");
+        regisButton.setStyle("-fx-font-size: 20px; -fx-padding: 10px 20px; -fx-border-width: 2px;");
+        
+        errorLabel = new Label("");
+        errorLabel.setTextFill(Color.RED);
+        errorLabel.setFont(Font.font("Arial", FontWeight.NORMAL, 18));
+        errorLabel.setVisible(false);
+        linkLogin = new Button ("Go to login page");
     }
     
        
@@ -139,28 +122,26 @@ public class RegisterPage implements Page {
         // Tambahkan elemen ke GridPane
         gridPane.add(usernameLabel, 0, 0);
         gridPane.add(usernameField, 1, 0);
-        gridPane.add(usernameErrorLabel, 1, 1);
 
-        gridPane.add(phoneLabel, 0, 2);
-        gridPane.add(phoneField, 1, 2);
-        gridPane.add(phoneErrorLabel, 1, 3);
+        gridPane.add(phoneLabel, 0, 1);
+        gridPane.add(phoneField, 1, 1);
 
-        gridPane.add(addressLabel, 0, 4);
-        gridPane.add(addressField, 1, 4);
-        gridPane.add(addressErrorLabel, 1, 5);
+        gridPane.add(addressLabel, 0, 2);
+        gridPane.add(addressField, 1, 2);
 
         HBox roleBox = new HBox(10, buyerRadioButton, sellerRadioButton);
         roleBox.setAlignment(Pos.CENTER_LEFT);
-        gridPane.add(roleLabel, 0, 6);
-        gridPane.add(roleBox, 1, 6);
-        gridPane.add(roleErrorLabel, 1, 7);
+        gridPane.add(roleLabel, 0, 3);
+        gridPane.add(roleBox, 1, 3);
 
-        gridPane.add(passwordLabel, 0, 8);
-        gridPane.add(passwordField, 1, 8);
-        gridPane.add(passwordErrorLabel, 1, 9);
+        gridPane.add(passwordLabel, 0, 4);
+        gridPane.add(passwordField, 1, 4);
 
-        gridPane.add(regisButton, 1, 10);
-        GridPane.setHalignment(regisButton, javafx.geometry.HPos.RIGHT);
+     
+        gridPane.add(errorLabel, 1, 5);
+        gridPane.add(linkLogin, 1, 6);
+        gridPane.add(regisButton, 1, 7);
+        GridPane.setHalignment(regisButton, javafx.geometry.HPos.LEFT);
 
         // Tambahkan GridPane ke VBox
         vbox.getChildren().clear();
@@ -181,61 +162,30 @@ public class RegisterPage implements Page {
     @Override
     public void setEvent() {
         regisButton.setOnAction(e -> validateInputs());
+        linkLogin.setOnAction(e -> loginPage());
     }
 
     
 
     private void validateInputs() {
-        boolean hasError = false;
-
+    	RadioButton selectedRadio = (RadioButton) roleGroup.getSelectedToggle();
+    	
+    	if(selectedRadio == null) {
+    		errorLabel.setText("Please select a role (Buyer/Seller).");
+            errorLabel.setVisible(true);
+    		return;
+    	}
+    	
+    	Response<UserModel> res = UserController.Register(usernameField.getText(), passwordField.getText(), 
+    			phoneField.getText(), addressField.getText(), selectedRadio.getUserData().toString());
         
-        if (usernameField.getText().trim().isEmpty()) {
-            usernameErrorLabel.setVisible(true);
-            hasError = true;
-        } else {
-            usernameErrorLabel.setVisible(false);
+    	if (!res.getIsSuccess()) {
+        	errorLabel.setText(res.getMessages());
+        	errorLabel.setVisible(true);
+        	return;
         }
-
-     
-        if (phoneField.getText().trim().isEmpty()) {
-            phoneErrorLabel.setVisible(true);
-            hasError = true;
-        } else {
-            phoneErrorLabel.setVisible(false);
-        }
-
-      
-        if (addressField.getText().trim().isEmpty()) {
-            addressErrorLabel.setVisible(true);
-            hasError = true;
-        } else {
-            addressErrorLabel.setVisible(false);
-        }
-
-      
-        if (roleGroup.getSelectedToggle() == null) {
-            roleErrorLabel.setVisible(true);
-            hasError = true;
-        } else {
-            roleErrorLabel.setVisible(false);
-        }
-
-      
-        if (passwordField.getText().trim().isEmpty()) {
-            passwordErrorLabel.setVisible(true);
-            hasError = true;
-        } else {
-            passwordErrorLabel.setVisible(false);
-        }
-
-        
-        if (!hasError) {
-            System.out.println("Registration successful " + usernameField.getText() + "!");
-            
-            
-            
-            loginPage();
-        }
+    	
+    	loginPage();
     }
     
     

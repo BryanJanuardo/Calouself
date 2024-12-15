@@ -18,15 +18,13 @@ public class UserController {
 	}
 	
 	private static Boolean PhoneNumberValidation(String words) {
-		if(words.charAt(0) != '+') {
-			return true;
-		}else if(words.charAt(1) != '6') {
-			return true;
-		}else if(words.charAt(2) != '2') {
-			return true;
+		if(words.charAt(0) != '+' &&
+				words.charAt(1) != '6' &&
+				words.charAt(2) != '2') {
+			return false;
 		}
 		
-		return false;
+		return true;
 	}
 	
 	public static Response<UserModel> Login(String Username, String Password) {
@@ -81,7 +79,7 @@ public class UserController {
 			res.setData(null);
 			return res;
 		}else if(Password.length() < 8) {
-			res.setMessages("Password must at least be 3 character long!");
+			res.setMessages("Password must at least be 8 character long!");
 			res.setIsSuccess(false);
 			res.setData(null);
 			return res;
