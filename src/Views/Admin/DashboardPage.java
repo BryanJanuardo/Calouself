@@ -1,12 +1,19 @@
 package Views.Admin;
 
+import java.util.ArrayList;
+
+import Controllers.ItemController;
 import Managers.ViewManager;
+import Models.ItemModel;
+import Utils.Response;
 import Views.LoginPage;
 import Views.Page;
-import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
@@ -14,16 +21,13 @@ public class DashboardPage implements Page {
     private ViewManager viewManager;
     private StackPane root;
 
-    // Navbar
     private HBox navBar;
     private Button menuButton;
     private ContextMenu menuContext;
-    private MenuItem homeMenu;
     private MenuItem signOutMenu;
 
-    // Main layout
     private VBox mainLayout;
-    private TableView<AdminItem> itemTable;
+    private TableView<ItemModel> itemTable;
 
     public DashboardPage(ViewManager viewManager) {
         this.viewManager = viewManager;
@@ -40,7 +44,6 @@ public class DashboardPage implements Page {
     public void init() {
         root = new StackPane();
 
-        // Navbar mirip dengan OfferPage
         navBar = new HBox();
         navBar.setPadding(new Insets(10));
         navBar.setSpacing(10);
@@ -51,10 +54,9 @@ public class DashboardPage implements Page {
         navBar.getChildren().add(menuButton);
 
         menuContext = new ContextMenu();
-        homeMenu = new MenuItem("Home");
-        signOutMenu = new MenuItem("Sign Out"); // Menu untuk sign out
+        signOutMenu = new MenuItem("Sign Out");
 
-        menuContext.getItems().addAll(homeMenu, signOutMenu);
+        menuContext.getItems().addAll(signOutMenu);
 
         mainLayout = new VBox(10);
         mainLayout.setPadding(new Insets(10));
@@ -65,40 +67,35 @@ public class DashboardPage implements Page {
         itemTable = new TableView<>();
         itemTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
-        TableColumn<AdminItem, String> idCol = new TableColumn<>("ID");
-        idCol.setCellValueFactory(data -> data.getValue().idProperty());
-
-        TableColumn<AdminItem, String> nameCol = new TableColumn<>("Item Name");
-        nameCol.setCellValueFactory(data -> data.getValue().nameProperty());
-
-        TableColumn<AdminItem, String> categoryCol = new TableColumn<>("Item Category");
-        categoryCol.setCellValueFactory(data -> data.getValue().categoryProperty());
-
-        TableColumn<AdminItem, String> sizeCol = new TableColumn<>("Item Size");
-        sizeCol.setCellValueFactory(data -> data.getValue().sizeProperty());
-
-        TableColumn<AdminItem, String> priceCol = new TableColumn<>("Item Price");
-        priceCol.setCellValueFactory(data -> data.getValue().priceProperty());
-
-        TableColumn<AdminItem, String> statusCol = new TableColumn<>("Item Status");
-        statusCol.setCellValueFactory(data -> data.getValue().statusProperty());
-
-        // Kolom Action mirip dengan OfferPage (ACCEPT/DECLINE menjadi APPROVE/DECLINE)
-        TableColumn<AdminItem, Void> actionCol = new TableColumn<>("Action");
-        actionCol.setCellFactory(col -> {
-            TableCell<AdminItem, Void> cell = new TableCell<>() {
+        TableColumn<ItemModel, String> idColumn = new TableColumn<>("ID");
+        TableColumn<ItemModel, String> nameColumn = new TableColumn<>("Item Name");
+        TableColumn<ItemModel, String> categoryColumn = new TableColumn<>("Item Category");
+        TableColumn<ItemModel, String> sizeColumn = new TableColumn<>("Item Size");
+        TableColumn<ItemModel, String> priceColumn = new TableColumn<>("Item Price");
+        TableColumn<ItemModel, String> statusColumn = new TableColumn<>("Item Status");
+        
+        idColumn.setCellValueFactory(new PropertyValueFactory<>("item_id"));
+        nameColumn.setCellValueFactory(new PropertyValueFactory<>("item_name"));
+        categoryColumn.setCellValueFactory(new PropertyValueFactory<>("item_category"));
+        sizeColumn.setCellValueFactory(new PropertyValueFactory<>("item_size"));
+        priceColumn.setCellValueFactory(new PropertyValueFactory<>("item_price"));
+        statusColumn.setCellValueFactory(new PropertyValueFactory<>("item_status"));
+        
+        TableColumn<ItemModel, Void> actionColumn = new TableColumn<>("Action");
+        actionColumn.setCellFactory(col -> {
+            TableCell<ItemModel, Void> cell = new TableCell<>() {
                 private final Button approveButton = new Button("APPROVE");
                 private final Button declineButton = new Button("DECLINE");
                 private final HBox hb = new HBox(5, approveButton, declineButton);
 
                 {
                     approveButton.setOnAction(e -> {
-                        AdminItem item = getTableView().getItems().get(getIndex());
+                    	ItemModel item = getTableView().getItems().get(getIndex());
                         handleApprove(item);
                     });
 
                     declineButton.setOnAction(e -> {
-                        AdminItem item = getTableView().getItems().get(getIndex());
+                    	ItemModel item = getTableView().getItems().get(getIndex());
                         handleDecline(item);
                     });
                 }
@@ -116,13 +113,8 @@ public class DashboardPage implements Page {
             return cell;
         });
 
-        itemTable.getColumns().addAll(idCol, nameCol, categoryCol, sizeCol, priceCol, statusCol, actionCol);
-
-        // Contoh dummy data
-        itemTable.getItems().addAll(
-                new AdminItem("ID001", "Item Name", "Item Category", "M", "1000", "Requested")
-        );
-
+        itemTable.getColumns().addAll(idColumn, nameColumn, categoryColumn, sizeColumn, priceColumn, statusColumn, actionColumn);
+        refreshTable();
         mainLayout.getChildren().addAll(titleLabel, itemTable);
     }
 
@@ -139,32 +131,39 @@ public class DashboardPage implements Page {
                     menuButton.localToScreen(0, menuButton.getHeight()).getY()
             );
         });
-
-        homeMenu.setOnAction(e -> {
-            // Bila butuh navigasi ke halaman lain:
-            // viewManager.switchPage(new DashboardPage(viewManager));
-        });
         
         signOutMenu.setOnAction(e -> {
             viewManager.logout();
             viewManager.changePage(new LoginPage(viewManager).getPage());
         });
     }
+    
+    private void refreshTable() {
+    	ArrayList<ItemModel> products = ItemController.ViewRequestItem("Pending").getData();
+    	ObservableList<ItemModel> observableItems = FXCollections.observableArrayList(products);
+    	itemTable.setItems(observableItems);
+    }
 
-    private void handleApprove(AdminItem item) {
+    private void handleApprove(ItemModel item) {
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("Confirmation");
         confirm.setHeaderText("Approve Request");
-        confirm.setContentText("Are you sure you want to approve the request for " + item.getName() + "?");
+        confirm.setContentText("Are you sure you want to approve the request for " + item.getItem_name() + "?");
         confirm.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
-                showInfoAlert("Success", "Item approved!");
-                // Tambahkan logika approve ke database di sini
+                Response<ItemModel> res = ItemController.ApproveItem(item.getItem_id());
+                
+                if(res.getIsSuccess()) {
+                	showInfoAlert("Success", res.getMessages());
+                	refreshTable();
+                }else {
+                	showInfoAlert("Failed", res.getMessages());
+                }
             }
         });
     }
 
-    private void handleDecline(AdminItem item) {
+    private void handleDecline(ItemModel item) {
         Stage reasonStage = new Stage();
         VBox reasonLayout = new VBox(10);
         reasonLayout.setPadding(new Insets(10));
@@ -179,12 +178,14 @@ public class DashboardPage implements Page {
         Button submitButton = new Button("SUBMIT");
         submitButton.setOnAction(e -> {
             String reason = reasonField.getText().trim();
-            if (reason.isEmpty()) {
-                errorLabel.setText("Reason cannot be empty!");
-            } else {
-                showInfoAlert("Info", "Item declined with reason: " + reason);
-                reasonStage.close();
-                // Tambahkan logika decline ke database di sini
+            Response<ItemModel> res = ItemController.DeclineItem(item.getItem_id(), reason);
+            
+            if(res.getIsSuccess()) {
+            	refreshTable();
+            	showInfoAlert("Info", res.getMessages() + " Item declined with reason: " + reason);    
+            	reasonStage.close();
+            }else {            	
+            	errorLabel.setText(res.getMessages());            	
             }
         });
 
@@ -202,40 +203,4 @@ public class DashboardPage implements Page {
         alert.setContentText(content);
         alert.showAndWait();
     }
-}
-
-class AdminItem {
-    private SimpleStringProperty id;
-    private SimpleStringProperty name;
-    private SimpleStringProperty category;
-    private SimpleStringProperty size;
-    private SimpleStringProperty price;
-    private SimpleStringProperty status;
-
-    public AdminItem(String id, String name, String category, String size, String price, String status) {
-        this.id = new SimpleStringProperty(id);
-        this.name = new SimpleStringProperty(name);
-        this.category = new SimpleStringProperty(category);
-        this.size = new SimpleStringProperty(size);
-        this.price = new SimpleStringProperty(price);
-        this.status = new SimpleStringProperty(status);
-    }
-
-    public String getId() { return id.get(); }
-    public SimpleStringProperty idProperty() { return id; }
-
-    public String getName() { return name.get(); }
-    public SimpleStringProperty nameProperty() { return name; }
-
-    public String getCategory() { return category.get(); }
-    public SimpleStringProperty categoryProperty() { return category; }
-
-    public String getSize() { return size.get(); }
-    public SimpleStringProperty sizeProperty() { return size; }
-
-    public String getPrice() { return price.get(); }
-    public SimpleStringProperty priceProperty() { return price; }
-
-    public String getStatus() { return status.get(); }
-    public SimpleStringProperty statusProperty() { return status; }
 }

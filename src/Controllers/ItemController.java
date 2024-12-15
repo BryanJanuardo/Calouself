@@ -10,7 +10,7 @@ import Utils.Response;
 
 public class ItemController {
 
-	public static Response<ItemModel> UploadItem(String Item_name, String Item_category, String Item_size, String Item_price) {
+	public static Response<ItemModel> UploadItem(String Seller_id, String Item_name, String Item_category, String Item_size, String Item_price) {
 		Response<ItemModel> res = new Response<ItemModel>();
 		
 		if(Item_name.isEmpty()) {
@@ -44,23 +44,23 @@ public class ItemController {
 			res.setData(null);
 			return res;
 		}
-		
+				
 		try {
-			if(Integer.parseInt(Item_price) == 0) {
+			if(new BigDecimal(Item_price).compareTo(BigDecimal.ZERO) == 0) {
 				res.setMessages("Item price cannot be 0!");
 				res.setIsSuccess(false);
 				res.setData(null);
 				return res;
 			} 
 			
-		} catch (NumberFormatException e) {
+		} catch (Exception e) {
 			res.setMessages("Item price must be in number!");
 			res.setIsSuccess(false);
 			res.setData(null);
 			return res;
 		}
 		
-		return ItemModel.UploadItem(Item_name, Item_category, Item_size, new BigDecimal(Item_price));
+		return ItemModel.UploadItem(Seller_id, Item_name, Item_category, Item_size, new BigDecimal(Item_price));
 	}
 	
 	public static Response<ItemModel> EditItem(String Item_id, String Item_name, String Item_category, String Item_size, String Item_price) {
@@ -99,14 +99,14 @@ public class ItemController {
 		}
 		
 		try {
-			if(Integer.parseInt(Item_price) == 0) {
+			if(new BigDecimal(Item_price).compareTo(BigDecimal.ZERO) == 0) {
 				res.setMessages("Item price cannot be 0!");
 				res.setIsSuccess(false);
 				res.setData(null);
 				return res;
 			} 
 			
-		} catch (NumberFormatException e) {
+		} catch (Exception e) {
 			res.setMessages("Item price must be in number!");
 			res.setIsSuccess(false);
 			res.setData(null);
@@ -128,7 +128,7 @@ public class ItemController {
 		return ItemModel.ViewItem();
 	}
 	
-	public static ArrayList<ItemModel> ViewSellerItem(String Seller_id){
+	public static Response<ArrayList<ItemModel>> ViewSellerItem(String Seller_id){
 		Response<ArrayList<ProductModel>> res = ItemModel.ViewSellerItem(Seller_id);
 		ArrayList<ProductModel> data = res.getData();
 		ArrayList<ItemModel> item = new ArrayList<ItemModel>();
@@ -137,23 +137,47 @@ public class ItemController {
 			item.add(product.item());
 		}
 		
-		return item;
+		Response<ArrayList<ItemModel>> resResult = new Response<ArrayList<ItemModel>>();
+		resResult.setMessages(res.getMessages());
+		resResult.setIsSuccess(res.getIsSuccess());
+		resResult.setData(item);
+		return resResult;
 	}
 	
-	public static Response<ArrayList<ProductModel>> ViewRequestItem(String Item_id, String Item_status){
-		return ItemModel.ViewRequestItem();
+	public static Response<ArrayList<ItemModel>> ViewRequestItem(String Item_status){
+		Response<ArrayList<ProductModel>> res = ItemModel.ViewRequestItem();
+		ArrayList<ProductModel> data = res.getData();
+		ArrayList<ItemModel> item = new ArrayList<ItemModel>();
+		
+		for (ProductModel product : data) {
+			item.add(product.item());
+		}
+		
+		Response<ArrayList<ItemModel>> resResult = new Response<ArrayList<ItemModel>>();
+		resResult.setMessages(res.getMessages());
+		resResult.setIsSuccess(res.getIsSuccess());
+		resResult.setData(item);
+		return resResult;
 	}
 	
 	public static Response<OfferModel> OfferPrice(String Item_id, String Buyer_id, String Item_price) {
 		return ItemModel.OfferPrice(Item_id, Buyer_id, new BigDecimal(Item_price));
 	}
 	
-	public static Response<OfferModel> AcceptOffer(String Item_id) {
-		return ItemModel.AcceptOffer(Item_id);
+	public static Response<OfferModel> AcceptOffer(String Offer_id) {
+		return ItemModel.AcceptOffer(Offer_id);
 	}
 	
-	public static Response<OfferModel> DeclineOffer(String Item_id, String Reason) {
-		return ItemModel.DeclineOffer(Item_id, Reason);
+	public static Response<OfferModel> DeclineOffer(String Offer_id, String Reason) {
+		Response<OfferModel> res = new Response<OfferModel>();
+		if(Reason.isEmpty()) {
+			res.setMessages("Item price cannot be empty!");
+			res.setIsSuccess(false);
+			res.setData(null);
+			return res;
+		}
+		
+		return ItemModel.DeclineOffer(Offer_id, Reason);
 	}
 	
 	public static Response<ItemModel> ApproveItem(String Item_id) {
@@ -161,6 +185,14 @@ public class ItemController {
 	}
 	
 	public static Response<ItemModel> DeclineItem(String Item_id, String Reason) {
+		Response<ItemModel> res = new Response<ItemModel>();
+		if(Reason.isEmpty()) {
+			res.setMessages("Item price cannot be empty!");
+			res.setIsSuccess(false);
+			res.setData(null);
+			return res;
+		}
+		
 		return ItemModel.DeclineItem(Item_id, Reason);
 	}
 	

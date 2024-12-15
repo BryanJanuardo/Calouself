@@ -1,12 +1,22 @@
 package Views.Seller;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+
+import Controllers.ItemController;
 import Managers.ViewManager;
+import Models.OfferModel;
+import Utils.Response;
 import Views.LoginPage;
 import Views.Page;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
@@ -14,16 +24,14 @@ public class OfferPage implements Page {
     private ViewManager viewManager;
     private StackPane root;
 
-    // Navbar
     private HBox navBar;
     private Button menuButton;
     private ContextMenu menuContext;
     private MenuItem homeMenu;
     private MenuItem signOutMenu;
 
-    // Main layout
     private VBox mainLayout;
-    private TableView<OfferItem> offerTable;
+    private TableView<OfferModel> offerTable;
 
     public OfferPage(ViewManager viewManager) {
         this.viewManager = viewManager;
@@ -40,7 +48,6 @@ public class OfferPage implements Page {
     public void init() {
         root = new StackPane();
 
-        // Navbar
         navBar = new HBox();
         navBar.setPadding(new Insets(10));
         navBar.setSpacing(10);
@@ -63,42 +70,55 @@ public class OfferPage implements Page {
 
         offerTable = new TableView<>();
         offerTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-
    
-        TableColumn<OfferItem, String> idCol = new TableColumn<>("ID");
-        idCol.setCellValueFactory(data -> data.getValue().idProperty());
+        TableColumn<OfferModel, String> idColumn = new TableColumn<>("ID");
+        TableColumn<OfferModel, String> nameColumn = new TableColumn<>("Item Name");
+        TableColumn<OfferModel, String> categoryColumn = new TableColumn<>("Item Category");
+        TableColumn<OfferModel, String> sizeColumn = new TableColumn<>("Item Size");
+        TableColumn<OfferModel, BigDecimal> priceColumn = new TableColumn<>("Item Price");
+        TableColumn<OfferModel, String> offeredPriceColumn = new TableColumn<>("Offered Price");
+        TableColumn<OfferModel, Void> actionColumn = new TableColumn<>("Action");
+        
+        idColumn.setCellValueFactory(new PropertyValueFactory<>("offer_id"));
+        nameColumn.setCellValueFactory(cellData -> {
+            OfferModel offer = cellData.getValue();
+            String itemName = offer.product().item().getItem_name();
+            return new SimpleStringProperty(itemName);
+        });
 
-        TableColumn<OfferItem, String> nameCol = new TableColumn<>("Item Name");
-        nameCol.setCellValueFactory(data -> data.getValue().nameProperty());
+        priceColumn.setCellValueFactory(cellData -> {
+            OfferModel offer = cellData.getValue();
+            BigDecimal itemPrice = offer.product().item().getItem_price();
+            return new SimpleObjectProperty<>(itemPrice);
+        });
 
-        TableColumn<OfferItem, String> categoryCol = new TableColumn<>("Item Category");
-        categoryCol.setCellValueFactory(data -> data.getValue().categoryProperty());
+        categoryColumn.setCellValueFactory(cellData -> {
+            OfferModel offer = cellData.getValue();
+            String category = offer.product().item().getItem_category();
+            return new SimpleStringProperty(category);
+        });
 
-        TableColumn<OfferItem, String> sizeCol = new TableColumn<>("Item Size");
-        sizeCol.setCellValueFactory(data -> data.getValue().sizeProperty());
-
-        TableColumn<OfferItem, String> priceCol = new TableColumn<>("Item Price");
-        priceCol.setCellValueFactory(data -> data.getValue().priceProperty());
-
-        TableColumn<OfferItem, String> offeredPriceCol = new TableColumn<>("Offered Price");
-        offeredPriceCol.setCellValueFactory(data -> data.getValue().offeredPriceProperty());
-
-//    ACC And Decline
-        TableColumn<OfferItem, Void> actionCol = new TableColumn<>("Action");
-        actionCol.setCellFactory(col -> {
-            TableCell<OfferItem, Void> cell = new TableCell<>() {
+        sizeColumn.setCellValueFactory(cellData -> {
+            OfferModel offer = cellData.getValue();
+            String size = offer.product().item().getItem_size();
+            return new SimpleStringProperty(size);
+        });
+        offeredPriceColumn.setCellValueFactory(new PropertyValueFactory<>("item_offer_price"));
+        
+        actionColumn.setCellFactory(col -> {
+            TableCell<OfferModel, Void> cell = new TableCell<>() {
                 private final Button acceptButton = new Button("ACCEPT");
                 private final Button declineButton = new Button("DECLINE");
                 private final HBox hb = new HBox(5, acceptButton, declineButton);
 
                 {
                     acceptButton.setOnAction(e -> {
-                        OfferItem item = getTableView().getItems().get(getIndex());
+                        OfferModel item = getTableView().getItems().get(getIndex());
                         handleAccept(item);
                     });
 
                     declineButton.setOnAction(e -> {
-                        OfferItem item = getTableView().getItems().get(getIndex());
+                        OfferModel item = getTableView().getItems().get(getIndex());
                         handleDecline(item);
                     });
                 }
@@ -115,14 +135,8 @@ public class OfferPage implements Page {
             };
             return cell;
         });
-
-        offerTable.getColumns().addAll(idCol, nameCol, categoryCol, sizeCol, priceCol, offeredPriceCol, actionCol);
-
-        // Dummy data
-        offerTable.getItems().addAll(
-            new OfferItem("ID001", "Item Name", "Item Category", "M", "1000", "900")
-        );
-
+        offerTable.getColumns().addAll(idColumn, nameColumn, categoryColumn, sizeColumn, priceColumn, offeredPriceColumn, actionColumn);
+        refreshTable();
         mainLayout.getChildren().addAll(titleLabel, offerTable);
     }
 
@@ -149,21 +163,32 @@ public class OfferPage implements Page {
             viewManager.changePage(new LoginPage(viewManager).getPage());
         });
     }
-
-    private void handleAccept(OfferItem item) {
+    
+    private void refreshTable() {
+    	ArrayList<OfferModel> products = ItemController.ViewOfferItem(viewManager.getUser().getUser_id()).getData();
+    	ObservableList<OfferModel> observableItems = FXCollections.observableArrayList(products);
+    	offerTable.setItems(observableItems);
+    }
+    
+    private void handleAccept(OfferModel offer) {
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("Confirmation");
         confirm.setHeaderText("Accept Offer");
-        confirm.setContentText("Are you sure you want to accept the offer for " + item.getName() + "?");
+        confirm.setContentText("Are you sure you want to accept the offer for " + offer.product().item().getItem_name() + "?");
         confirm.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
-                showInfoAlert("Success", "Offer accepted!");
-                // Tambahkan logika accept disini buat update database
+            	Response<OfferModel> res = ItemController.AcceptOffer(offer.getOffer_id());
+            	if(res.getIsSuccess()) {
+            		showInfoAlert("Success", res.getMessages());
+            		refreshTable();
+            	}else {
+            		showInfoAlert("Failed", res.getMessages());            		
+            	}
             }
         });
     }
 
-    private void handleDecline(OfferItem item) {
+    private void handleDecline(OfferModel offer) {
         Stage reasonStage = new Stage();
         VBox reasonLayout = new VBox(10);
         reasonLayout.setPadding(new Insets(10));
@@ -178,13 +203,15 @@ public class OfferPage implements Page {
         Button submitButton = new Button("SUBMIT");
         submitButton.setOnAction(e -> {
             String reason = reasonField.getText().trim();
-            if (reason.isEmpty()) {
-                errorLabel.setText("Reason cannot be empty!");
-            } else {
-                showInfoAlert("Info", "Offer declined with reason: " + reason);
-                reasonStage.close();
-                // Tambah logika decline  buat update database
+            Response<OfferModel> res = ItemController.DeclineOffer(offer.getOffer_id(), reason);
+            
+            if(res.getIsSuccess()) {            	
+            	showInfoAlert("Info", res.getMessages() + "Offer declined with reason: " + reason);
+            	reasonStage.close();
+            }else {
+            	errorLabel.setText(res.getMessages());            	
             }
+            refreshTable();
         });
 
         reasonLayout.getChildren().addAll(reasonTitle, reasonField, errorLabel, submitButton);

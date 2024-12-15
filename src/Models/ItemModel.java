@@ -21,7 +21,7 @@ public class ItemModel extends Model{
 	private String Item_status;
 	private String Reason;
 	
-	public static Response<ItemModel> UploadItem(String Item_name, String Item_category, String Item_size, BigDecimal Item_price) {
+	public static Response<ItemModel> UploadItem(String Seller_id, String Item_name, String Item_category, String Item_size, BigDecimal Item_price) {
 		Response<ItemModel> res = new Response<ItemModel>();
 		
 		try {
@@ -33,8 +33,11 @@ public class ItemModel extends Model{
 			
 			ItemModel item = ItemFactory.createItem(IdGeneratorHelper.generateNewId(ItemFactory.createItem().latest().getItem_id(), "IT"), 
 					Item_name, Item_size, Item_price, Item_category, "Pending", null);
-			
 			item.insert();
+			
+			ProductModel product = ProductFactory.createProduct(IdGeneratorHelper.generateNewId(ProductFactory.createProduct().latest().getProduct_id(), "PR"), item.getItem_id(), Seller_id);
+			product.insert();
+			
 			res.setMessages("Success: Item Uploaded!");
 			res.setIsSuccess(true);
 			res.setData(item);
@@ -199,7 +202,7 @@ public class ItemModel extends Model{
 			res.setIsSuccess(false);
 			res.setData(null);
 			return res;
-		} else if(Item_price instanceof BigDecimal) {
+		} else if(!(Item_price instanceof BigDecimal)) {
 			res.setMessages("Error: Item Price Must Be In Number");
 			res.setIsSuccess(false);
 			res.setData(null);
@@ -250,7 +253,7 @@ public class ItemModel extends Model{
 			res.setIsSuccess(false);
 			res.setData(null);
 			return res;
-		}else if (Item_price instanceof BigDecimal) {
+		}else if (!(Item_price instanceof BigDecimal)) {
 			res.setMessages("Error: Item Price Must Be In Number");
 			res.setIsSuccess(false);
 			res.setData(null);
@@ -307,7 +310,7 @@ public class ItemModel extends Model{
 			res.setIsSuccess(false);
 			res.setData(null);
 			return res;
-		}else if (Item_price instanceof BigDecimal) {
+		}else if (!(Item_price instanceof BigDecimal)) {
 			res.setMessages("Error: Item Price Must Be In Number");
 			res.setIsSuccess(false);
 			res.setData(null);
@@ -552,7 +555,9 @@ public class ItemModel extends Model{
 			
 			for (ProductModel product : listProduct) {
 				for (OfferModel offer : product.offers()) {
-					listOffer.add(offer);					
+					if(offer.getItem_offer_status().equals("Offered")) {
+						listOffer.add(offer);											
+					}
 				}
 			}
 			

@@ -7,6 +7,7 @@ import Controllers.ItemController;
 import Managers.ViewManager;
 import Models.ItemModel;
 import Models.ProductModel;
+import Utils.Response;
 import Views.LoginPage;
 import Views.Page;
 import javafx.collections.FXCollections;
@@ -23,7 +24,6 @@ public class DashboardPage implements Page {
     private ViewManager viewManager;
     private StackPane root;
 
-    // Navbar
     private HBox navBar;
     private Button menuButton;
     
@@ -31,15 +31,12 @@ public class DashboardPage implements Page {
     private MenuItem offeredItemMenu; 
     private MenuItem signOutMenu;
 
-    // Main layout (isi konten utama)
     private VBox mainLayout;
 
-    // UI Components (untuk upload item)
     private TextField itemNameField, itemCategoryField, itemSizeField, itemPriceField;
     private TableView<ItemModel> itemsTable;
     private Label errorMessage;
 
-    // Komponen untuk upload form & tabel
     private Label titleLabel;
     private GridPane uploadForm;
     private Label tableLabel;
@@ -57,14 +54,12 @@ public class DashboardPage implements Page {
 
     @Override
     public void init() {
-        // Initialize form inputs
         itemNameField = new TextField();
         itemCategoryField = new TextField();
         itemSizeField = new TextField();
         itemPriceField = new TextField();
         
 
-        // Initialize table
         itemsTable = new TableView<ItemModel>();
         TableColumn<ItemModel, String> idColumn = new TableColumn<>("ID");
         TableColumn<ItemModel, String> nameColumn = new TableColumn<>("Item Name");
@@ -112,7 +107,6 @@ public class DashboardPage implements Page {
         uploadForm.add(saveButton, 1, 4);
         uploadForm.add(errorMessage, 1, 5);
 
-        // Table View for Items
         tableLabel = new Label("Uploaded Items");
         tableLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
 
@@ -121,7 +115,6 @@ public class DashboardPage implements Page {
         actionButtons = new HBox(10, editButton, deleteButton);
         actionButtons.setAlignment(Pos.CENTER);
 
-        // Navbar
         navBar = new HBox();
         navBar.setPadding(new Insets(10));
         navBar.setSpacing(10);
@@ -131,24 +124,20 @@ public class DashboardPage implements Page {
         menuButton.setStyle("-fx-text-fill: white; -fx-background-color: #555;");
         navBar.getChildren().add(menuButton);
 
-        // ContextMenu untuk menu
         menuContext = new ContextMenu();
         offeredItemMenu = new MenuItem("Offered Item");
         signOutMenu = new MenuItem("Sign Out");
         menuContext.getItems().addAll(offeredItemMenu, signOutMenu);
 
-        // Main layout (konten utama)
         mainLayout = new VBox();
         mainLayout.setSpacing(10);
         mainLayout.setPadding(new Insets(10));
 
-        // Awal tampilkan form upload item dan tabel di halaman utama
         mainLayout.getChildren().addAll(titleLabel, uploadForm, tableLabel, itemsTable, actionButtons);
     }
 
     @Override
     public void setLayout() {
-        // Bungkus navbar dan mainLayout dalam satu VBox
         VBox wrapper = new VBox();
         wrapper.getChildren().addAll(navBar, mainLayout);
 
@@ -158,7 +147,6 @@ public class DashboardPage implements Page {
 
     @Override
     public void setEvent() {
-        // Saat tombol Menu di-klik, tampilkan context menu di bawah tombol menu
         menuButton.setOnAction(e -> {
             menuContext.show(menuButton, 
                 menuButton.localToScreen(0, menuButton.getHeight()).getX(),
@@ -166,7 +154,6 @@ public class DashboardPage implements Page {
             );
         });
 
-        // Saat offered item di klik, saat ini hanya menampilkan alert "belum dibuat"
         offeredItemMenu.setOnAction(e -> {
             viewManager.switchPage(new OfferPage(viewManager));
         });
@@ -176,30 +163,22 @@ public class DashboardPage implements Page {
             viewManager.changePage(new LoginPage(viewManager).getPage());
         });
 
-        // Save Button Action
         Button saveButton = (Button) uploadForm.getChildren().filtered(node -> node instanceof Button && ((Button) node).getText().equals("SAVE")).get(0);
         saveButton.setOnAction(e -> {
             String itemName = itemNameField.getText();
             String itemCategory = itemCategoryField.getText();
             String itemSize = itemSizeField.getText();
             String itemPrice = itemPriceField.getText();
-
-            // Validation
-            if (itemName.isEmpty() || itemCategory.isEmpty() || itemSize.isEmpty() || itemPrice.isEmpty()) {
-                errorMessage.setText("All fields must be filled!");
-                return;
+            
+            Response<ItemModel> res = ItemController.UploadItem(viewManager.getUser().getUser_id(), itemName, itemCategory, itemSize, itemPrice);
+            if(res.getIsSuccess()) {
+            	errorMessage.setText("Item uploaded successfully!");
+            	refreshTable();
+            }else {
+            	errorMessage.setText(res.getMessages());
             }
-
-            if (!itemPrice.matches("\\d+")) {
-                errorMessage.setText("Price must be a valid number!");
-                return;
-            }
-
-
-            errorMessage.setText("Item uploaded successfully!");
         });
 
-        // Edit Button Action
         editButton.setOnAction(e -> {
             ItemModel selectedItem = itemsTable.getSelectionModel().getSelectedItem();
             if (selectedItem != null) {
@@ -209,7 +188,6 @@ public class DashboardPage implements Page {
             }
         });
 
-        // Delete Button Action
         deleteButton.setOnAction(e -> {
             ItemModel selectedItem = itemsTable.getSelectionModel().getSelectedItem();
             if (selectedItem != null) {
@@ -218,8 +196,13 @@ public class DashboardPage implements Page {
                 confirmationAlert.setHeaderText("Are you sure you want to delete this item?");
                 confirmationAlert.showAndWait().ifPresent(response -> {
                     if (response == ButtonType.OK) {
-                        itemsTable.getItems().remove(selectedItem);
-                        errorMessage.setText("Item deleted successfully!");
+                    	Response<ItemModel> res = ItemController.DeleteItem(selectedItem.getItem_id());
+                    	if(!res.getIsSuccess()) {
+                    		Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+                    		errorAlert.setTitle("Error Delete Item");
+                    		errorAlert.setHeaderText(res.getMessages());
+                    	}
+                    	refreshTable();
                     }
                 });
             } else {
@@ -229,7 +212,7 @@ public class DashboardPage implements Page {
     }
     
     private void refreshTable() {
-    	ArrayList<ItemModel> products = ItemController.ViewSellerItem(viewManager.getUser().getUser_id());
+    	ArrayList<ItemModel> products = ItemController.ViewSellerItem(viewManager.getUser().getUser_id()).getData();
     	ObservableList<ItemModel> observableItems = FXCollections.observableArrayList(products);
     	itemsTable.setItems(observableItems);
     }
@@ -240,6 +223,8 @@ public class DashboardPage implements Page {
         editLayout.setPadding(new Insets(10));
 
         Label editTitle = new Label("Edit Item");
+        Label errorEditMessage = new Label("");
+        errorEditMessage.setStyle("-fx-text-fill: red;");
         editTitle.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
 
         TextField editNameField = new TextField(selectedItem.getItem_name());
@@ -249,21 +234,18 @@ public class DashboardPage implements Page {
 
         Button saveEditButton = new Button("SAVE");
         saveEditButton.setOnAction(event -> {
-            String updatedItem = String.join(", ", 
-                editNameField.getText(), 
-                editCategoryField.getText(), 
-                editSizeField.getText(), 
-                editPriceField.getText()
-            );
-
-            int selectedIndex = itemsTable.getSelectionModel().getSelectedIndex();
-//            itemsTable.getItems().set(selectedIndex, updatedItem);
-            refreshTable();
-            errorMessage.setText("Item updated successfully!");
-            editStage.close();
+        	Response<ItemModel> res = ItemController.EditItem(selectedItem.getItem_id(), editNameField.getText(), 
+        			editCategoryField.getText(), editSizeField.getText(), editPriceField.getText());
+        	if(res.getIsSuccess()) {
+        		refreshTable();
+        		errorEditMessage.setText("Item updated successfully!");
+        		editStage.close();        		
+        	}else {        		
+        		errorEditMessage.setText(res.getMessages());
+        	}
         });
 
-        editLayout.getChildren().addAll(editTitle, editNameField, editCategoryField, editSizeField, editPriceField, saveEditButton);
+        editLayout.getChildren().addAll(editTitle, editNameField, editCategoryField, editSizeField, editPriceField, errorEditMessage, saveEditButton);
 
         Scene editScene = new Scene(editLayout, 300, 200);
         editStage.setScene(editScene);
