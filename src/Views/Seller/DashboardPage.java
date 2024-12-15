@@ -55,7 +55,8 @@ public class DashboardPage implements Page {
         setEvent();
     }
 
-    @Override
+    @SuppressWarnings("unchecked")
+	@Override
     public void init() {
         // Initialize form inputs
         itemNameField = new TextField();
