@@ -326,7 +326,6 @@ public abstract class Model {
 		try {
 			ArrayList<FromModel> listToModels = new ArrayList<FromModel>();
 			String query = "SELECT * FROM " + getTablename() + " WHERE " + columnName + " " + operator + " ?";
-			
 			ConnectionDB con = ConnectionDB.getInstance();
             PreparedStatement ps = con.prepareStatement(query);
             ps.setString(1, key);

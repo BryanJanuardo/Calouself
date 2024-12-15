@@ -1,7 +1,10 @@
 package Views;
 
 
+import Controllers.UserController;
 import Managers.ViewManager;
+import Models.UserModel;
+import Utils.Response;
 import Views.Customer.DashboardPage;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -14,15 +17,13 @@ import javafx.scene.text.FontWeight;
 public class LoginPage implements Page{
 	private ViewManager viewManager;
 	private StackPane root;
-	private Button testBtn;
-	private Button testBtn2;
 
     private VBox vbox;
     private TextField usernameField;
     private PasswordField passwordField;
-    private Label usernameErrorLabel;
-    private Label passwordErrorLabel;
+    private Label errorLabel;
     private Button loginButton;
+    private Button linkRegister;
 
    
 
@@ -35,35 +36,28 @@ public class LoginPage implements Page{
     }
 
     public void init() {
-    	testBtn = new Button("test");
-		testBtn2 = new Button("test2");
-
+    	linkRegister = new Button("Go to register page");
 		
         vbox = new VBox(15); 
         vbox.setAlignment(Pos.CENTER); 
         vbox.setPadding(new Insets(30, 50, 30, 50)); 
 
         usernameField = new TextField();
-        usernameField.setPrefWidth(300);
+        usernameField.setPrefWidth(200);
         usernameField.setPrefHeight(51);
         usernameField.setPromptText("Username");
         usernameField.setStyle("-fx-font-size: 18px;");
 
         passwordField = new PasswordField();
-        passwordField.setPrefWidth(300);
+        passwordField.setPrefWidth(200);
         passwordField.setPrefHeight(51);
         passwordField.setPromptText("Password");
         passwordField.setStyle("-fx-font-size: 18px;");
    
-        usernameErrorLabel = new Label("username is required");
-        usernameErrorLabel.setTextFill(Color.RED);
-        usernameErrorLabel.setFont(Font.font("Arial", FontWeight.NORMAL, 18));
-        usernameErrorLabel.setVisible(false);
-
-        passwordErrorLabel = new Label("password is required");
-        passwordErrorLabel.setTextFill(Color.RED);
-        passwordErrorLabel.setFont(Font.font("Arial", FontWeight.NORMAL, 18));
-        passwordErrorLabel.setVisible(false);
+        errorLabel = new Label("password is required");
+        errorLabel.setTextFill(Color.RED);
+        errorLabel.setFont(Font.font("Arial", FontWeight.NORMAL, 18));
+        errorLabel.setVisible(false);
         
         loginButton = new Button("Login");
         loginButton.setPrefWidth(140);
@@ -94,69 +88,62 @@ public class LoginPage implements Page{
     
         gridPane.add(usernameLabel, 0, 0);
         gridPane.add(usernameField, 1, 0);
-        gridPane.add(usernameErrorLabel, 1, 1);
-        gridPane.add(passwordLabel, 0, 2);
-        gridPane.add(passwordField, 1, 2);
-        gridPane.add(passwordErrorLabel, 1, 3);
+        gridPane.add(passwordLabel, 0, 1);
+        gridPane.add(passwordField, 1, 1);
+        gridPane.add(errorLabel, 1, 2);
+        gridPane.add(linkRegister, 1, 3);
         gridPane.add(loginButton, 1, 4);
         GridPane.setHalignment(loginButton, javafx.geometry.HPos.RIGHT);
 
         
-        vbox.getChildren().addAll( titleLabel, gridPane, testBtn, testBtn2);
+        vbox.getChildren().addAll(titleLabel, gridPane);
         root.getChildren().add(vbox);
     }
 
     public void setEvent() {
         loginButton.setOnAction(e -> validateInputs());
-        testBtn.setOnAction(e -> testPage());
-		testBtn2.setOnAction(e -> testPage2());
-
+        linkRegister.setOnAction(e -> registerPage());
     }
 
     private void validateInputs() {
-        boolean hasError = false;
-
-   
-        if (usernameField.getText().trim().isEmpty()) {
-            usernameErrorLabel.setVisible(true);
-            hasError = true;
-        } else {
-            usernameErrorLabel.setVisible(false);
-        }
-
-      
-        if (passwordField.getText().trim().isEmpty()) {
-            passwordErrorLabel.setVisible(true);
-            hasError = true;
-        } else {
-            passwordErrorLabel.setVisible(false);
-        }
-
+    	if(usernameField.getText().equals("admin") && passwordField.getText().equals("admin")) {
+    		adminPage();
+    	}
+    	
+        Response<UserModel> res = UserController.Login(usernameField.getText(), passwordField.getText());
        
-        if (!hasError) {
-        	System.out.println("Login successful " + usernameField.getText() + "!");
-            homePage();
-        }
+        if (!res.getIsSuccess()) {
+        	errorLabel.setText(res.getMessages());
+        	errorLabel.setVisible(true);
+        	return;
+        }    
+        
+        viewManager.setUser(res.getData());
+    	if(res.getData().getRole().equals("customer")) {
+    		customerPage();
+    	}else if(res.getData().getRole().equals("seller")) {
+    		sellerPage();
+    	}
     }
-    public void testPage() {
+    
+    public void sellerPage() {
 		viewManager.changePage(new Views.Seller.DashboardPage(viewManager).getPage());
 	}
 
-	public void testPage2() {
+	public void adminPage() {
 		viewManager.changePage(new Views.Admin.DashboardPage(viewManager).getPage());
 	}
 
-    public void homePage() {
-    	viewManager.changePage(new DashboardPage(viewManager).getPage());
+    public void customerPage() {
+    	viewManager.changePage(new Views.Customer.DashboardPage(viewManager).getPage());
     }
 
+    public void registerPage() {
+    	viewManager.changePage(new RegisterPage(viewManager).getPage());    	
+    }
+    
     @Override
     public StackPane getPage() {
         return root;
     }
-
-	
-
-
-
 }

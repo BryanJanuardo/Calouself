@@ -21,8 +21,15 @@ public class UserModel extends Model{
 	    Response<UserModel> res = new Response<UserModel>();
 	    
 	    try {
-	        UserModel foundUser = UserFactory.createUser().where("Username", "=", Username).get(0);
-
+	    	ArrayList<UserModel> users = UserFactory.createUser().where("Username", "=", Username);
+	        if(users.isEmpty()) {
+	        	res.setMessages("Error: User Not Found!");
+	            res.setIsSuccess(false);
+	            res.setData(null);
+	            return res;
+	        }
+	    	
+	    	UserModel foundUser = users.get(0);
 	        if (!foundUser.getPassword().equals(Password)) {
 	            res.setMessages("Error: Wrong Password!");
 	            res.setIsSuccess(false);
@@ -50,7 +57,6 @@ public class UserModel extends Model{
 	    try {
 	    	UserModel user = UserFactory.createUser(IdGeneratorHelper.generateNewId(UserFactory.createUser().latest().getUser_id(), "US"),
 	    			Username, Password, Phone_Number, Address, Role);
-	    
 	    	user.insert();
 	        
 	        res.setMessages("Success: User Registered!");
@@ -70,12 +76,18 @@ public class UserModel extends Model{
 	public static Response<UserModel> CheckAccountValidation(String Username, String Password, String Phone_Number, String Address) {
 		Response<UserModel> res = new Response<UserModel>();
 	    try {
-	        UserModel foundUser = UserFactory.createUser().where("Username", "=", Username).get(0);
-	        
-	        res.setMessages("Success: User Found!");
-	        res.setIsSuccess(true);
-	        res.setData(foundUser);
-	        return res;
+	    	ArrayList<UserModel> users = UserFactory.createUser().where("Username", "=", Username);
+	    	if(users.isEmpty()) {
+	    		res.setMessages("Error: User Not Found!");
+	    		res.setIsSuccess(false);
+	    		res.setData(null);
+	    		return res;
+	    	}
+	    	
+	    	res.setMessages("Success: User Found!");
+	    	res.setIsSuccess(true);
+	    	res.setData(users.get(0));
+	    	return res;
 	        
 	    } catch (Exception e) {
 	        e.printStackTrace();
