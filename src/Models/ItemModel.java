@@ -551,10 +551,17 @@ public class ItemModel extends Model{
 		
 		try {
 			ArrayList<OfferModel> listOffer = OfferFactory.createOffer().where("Buyer_id", "=", User_id);
+			ArrayList<OfferModel> offerPending = new ArrayList<OfferModel>();
+			
+			for (OfferModel offer : listOffer) {
+				if(offer.getItem_offer_status().equals("Offered")) {
+					offerPending.add(offer);
+				}
+			}
 			
 			res.setMessages("Success: Retrived All Offered items!");
 			res.setIsSuccess(true);
-			res.setData(listOffer);
+			res.setData(offerPending);
 			return res;
 		} catch (Exception e) {
 	        e.printStackTrace();
